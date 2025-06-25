@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Time Auditor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/calendar.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Time Auditor</h1>
+            <div class="week-navigation">
+                <button id="prevWeek" class="nav-btn">&lt; Previous</button>
+                <button id="currentWeek" class="nav-btn current">Current Week</button>
+                <button id="nextWeek" class="nav-btn">Next &gt;</button>
+            </div>
+            <div class="week-display">
+                <span id="weekRange"></span>
+            </div>
+        </header>
+
+        <main>
+            <div class="calendar-container">
+                <div class="calendar-header" id="calendarHeader">
+                    <div class="header-corner"></div>
+                    <!-- Day headers will be dynamically generated directly here -->
+                </div>
+                <div class="calendar-body">
+                    <div class="calendar-grid" id="calendar">
+                        <!-- Calendar will be dynamically generated -->
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Entry Form Modal -->
+    <div id="entryModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Add Time Entry</h2>
+                <span class="close" id="closeModal">&times;</span>
+            </div>
+            <form id="entryForm">
+                <div class="form-group">
+                    <label for="entryDate">Date:</label>
+                    <input type="date" id="entryDate" name="date" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="entryTime">Time:</label>
+                    <select id="entryTime" name="start_time" required>
+                        <!-- Time options will be populated by JavaScript -->
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="entryActivity">Activity:</label>
+                    <textarea id="entryActivity" name="activity" rows="3" maxlength="200" required 
+                              placeholder="Describe what you did during this time..."></textarea>
+                    <div class="char-counter">
+                        <span id="charCount">0</span>/200 characters
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Type:</label>
+                    <div class="radio-group">
+                        <label class="radio-label">
+                            <input type="radio" name="type" value="planned" required>
+                            <span>Planned</span>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="type" value="reactive" required>
+                            <span>Reactive</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Energy Impact:</label>
+                    <div class="radio-group">
+                        <label class="radio-label">
+                            <input type="radio" name="energy_impact" value="energised" required>
+                            <span>Energised</span>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="energy_impact" value="neutral" required>
+                            <span>Neutral</span>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="energy_impact" value="drained" required>
+                            <span>Drained</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" id="cancelBtn" class="btn btn-secondary">Cancel</button>
+                    <button type="button" id="deleteBtn" class="btn btn-danger" style="display: none;">Delete</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Loading overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="spinner"></div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/api.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/calendar.js') }}"></script>
+</body>
+</html> 
