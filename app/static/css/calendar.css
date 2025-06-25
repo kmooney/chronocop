@@ -100,6 +100,8 @@ header h1 {
     position: sticky;
     top: 0;
     z-index: 100;
+    padding-right: 17px; /* Account for scrollbar width */
+    box-sizing: border-box;
 }
 
 .header-corner {
@@ -118,7 +120,7 @@ header h1 {
     display: grid;
     grid-template-columns: 80px repeat(7, 1fr);
     grid-template-rows: repeat(48, 40px);
-    min-height: 1920px; /* 48 rows × 40px */
+    height: 1920px; /* 48 rows × 40px - fixed height */
 }
 
 .time-label {
@@ -135,6 +137,7 @@ header h1 {
     left: 0;
     z-index: 50;
     box-sizing: border-box;
+    height: 40px;
 }
 
 .day-header {
@@ -168,9 +171,10 @@ header h1 {
     border-bottom: 1px solid var(--border-color);
     cursor: pointer;
     position: relative;
-    min-height: 40px;
+    height: 40px;
     transition: background-color 0.2s ease;
     box-sizing: border-box;
+    overflow: hidden;
 }
 
 /* Remove right border from last column to match headers */
