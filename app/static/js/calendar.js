@@ -10,6 +10,8 @@ class TimeAuditCalendar {
         this.hoverTimeout = null;
         this.tooltip = null;
         this.hasInitiallyLoaded = false;
+        this.draggedEntry = null;
+        this.draggedElement = null;
         this.init();
     }
 
@@ -497,6 +499,11 @@ class TimeAuditCalendar {
         entryEl.addEventListener('mouseenter', (e) => {
             isHovering = true;
             
+            // Don't show tooltip if currently dragging
+            if (this.draggedEntry) {
+                return;
+            }
+            
             // Clear any existing timeout
             if (this.hoverTimeout) {
                 clearTimeout(this.hoverTimeout);
@@ -504,7 +511,7 @@ class TimeAuditCalendar {
 
             // Set timeout for 1 second
             this.hoverTimeout = setTimeout(() => {
-                if (isHovering) {
+                if (isHovering && !this.draggedEntry) {
                     this.showTooltip(e, entry);
                 }
             }, 1000);
@@ -846,6 +853,9 @@ Energy: ${entry.energy_impact.charAt(0).toUpperCase() + entry.energy_impact.slic
                 });
             }
             
+            // Add drop zone functionality
+            this.addDropZoneEvents(timeSlot);
+            
             calendar.appendChild(timeSlot);
         }
     }
@@ -854,6 +864,8 @@ Energy: ${entry.energy_impact.charAt(0).toUpperCase() + entry.energy_impact.slic
     createEntryElement(entry) {
         const entryEl = document.createElement('div');
         entryEl.className = `entry ${entry.type} ${entry.energy_impact}`;
+        entryEl.draggable = true;
+        entryEl.dataset.entryId = entry.id;
         
         const activityEl = document.createElement('div');
         activityEl.className = 'entry-activity';
@@ -874,7 +886,97 @@ Energy: ${entry.energy_impact.charAt(0).toUpperCase() + entry.energy_impact.slic
         // Add tooltip functionality
         this.addTooltipEvents(entryEl, entry);
         
+        // Add drag and drop functionality
+        this.addDragEvents(entryEl, entry);
+        
         return entryEl;
+    }
+
+    // Add drag events to entry element
+    addDragEvents(entryEl, entry) {
+        entryEl.addEventListener('dragstart', (e) => {
+            this.draggedEntry = entry;
+            this.draggedElement = entryEl;
+            entryEl.style.opacity = '0.5';
+            this.playUISound('select');
+            
+            // Hide tooltip and clear any pending timeouts
+            this.hideTooltip();
+            if (this.hoverTimeout) {
+                clearTimeout(this.hoverTimeout);
+                this.hoverTimeout = null;
+            }
+            
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/html', entryEl.outerHTML);
+        });
+
+        entryEl.addEventListener('dragend', (e) => {
+            entryEl.style.opacity = '1';
+            this.draggedEntry = null;
+            this.draggedElement = null;
+        });
+    }
+
+    // Add drop zone events to time slot
+    addDropZoneEvents(timeSlot) {
+        timeSlot.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            
+            // Only highlight if slot is empty or different from source
+            if (!timeSlot.classList.contains('has-entry') || 
+                (this.draggedEntry && 
+                 (timeSlot.dataset.date !== this.draggedEntry.date || 
+                  timeSlot.dataset.time !== this.draggedEntry.start_time))) {
+                timeSlot.classList.add('drop-target');
+            }
+        });
+
+        timeSlot.addEventListener('dragleave', (e) => {
+            timeSlot.classList.remove('drop-target');
+        });
+
+        timeSlot.addEventListener('drop', (e) => {
+            e.preventDefault();
+            timeSlot.classList.remove('drop-target');
+            
+            if (this.draggedEntry) {
+                const newDate = timeSlot.dataset.date;
+                const newTime = timeSlot.dataset.time;
+                
+                // Don't drop on same slot
+                if (newDate === this.draggedEntry.date && newTime === this.draggedEntry.start_time) {
+                    return;
+                }
+                
+                // Don't drop on occupied slot
+                if (timeSlot.classList.contains('has-entry')) {
+                    this.playUISound('button'); // Error sound
+                    return;
+                }
+                
+                this.moveEntry(this.draggedEntry, newDate, newTime);
+            }
+        });
+    }
+
+    // Move entry to new date/time
+    async moveEntry(entry, newDate, newTime) {
+        try {
+            const updatedEntry = {
+                ...entry,
+                date: newDate,
+                start_time: newTime
+            };
+            
+            await api.updateEntry(entry.id, updatedEntry);
+            this.playUISound('close'); // Success sound
+            this.loadCalendar(); // Refresh to show new position
+        } catch (error) {
+            console.error('Failed to move entry:', error);
+            this.playUISound('button'); // Error sound
+        }
     }
 
     // Open modal to add new entry

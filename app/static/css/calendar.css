@@ -307,10 +307,42 @@ header h1 {
     cursor: pointer;
     position: relative;
     height: 40px;
-    transition: all 0.3s ease;
     box-sizing: border-box;
     overflow: hidden;
     background: var(--bg-secondary);
+    --glow-opacity: 0;
+    --scale-factor: 1;
+    transition: 
+        --glow-opacity 1.5s ease-out,
+        --scale-factor 1.5s ease-out;
+}
+
+.time-slot::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, rgba(0, 255, 255, 0.1), rgba(255, 0, 255, 0.1));
+    opacity: var(--glow-opacity);
+    transition: opacity 1.5s ease-out;
+    pointer-events: none;
+}
+
+.time-slot::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    box-shadow: 
+        inset 0 0 20px rgba(0, 255, 255, 0.2),
+        0 0 10px rgba(0, 255, 255, 0.3);
+    opacity: var(--glow-opacity);
+    transition: opacity 1.5s ease-out;
+    pointer-events: none;
 }
 
 /* Remove right border from last column to match headers */
@@ -319,12 +351,14 @@ header h1 {
 }
 
 .time-slot:hover {
-    background: linear-gradient(45deg, rgba(0, 255, 255, 0.1), rgba(255, 0, 255, 0.1));
-    border-color: var(--border-glow);
-    box-shadow: 
-        inset 0 0 20px rgba(0, 255, 255, 0.2),
-        0 0 10px rgba(0, 255, 255, 0.3);
-    transform: scale(1.02);
+    --glow-opacity: 1;
+    --scale-factor: 1.02;
+    transform: scale(var(--scale-factor));
+}
+
+.time-slot:hover::before,
+.time-slot:hover::after {
+    transition: opacity 0.1s ease-in;
 }
 
 .time-slot.has-entry {
@@ -333,6 +367,38 @@ header h1 {
 
 .time-slot.has-entry:hover {
     opacity: 0.8;
+}
+
+/* Drag and Drop Styles */
+.time-slot.drop-target {
+    background: linear-gradient(45deg, rgba(0, 255, 255, 0.3), rgba(255, 0, 255, 0.3)) !important;
+    border: 2px solid var(--primary-color) !important;
+    box-shadow: 
+        inset 0 0 30px rgba(0, 255, 255, 0.4),
+        0 0 20px rgba(0, 255, 255, 0.6) !important;
+    animation: dropTargetPulse 1s ease-in-out infinite alternate;
+}
+
+@keyframes dropTargetPulse {
+    0% { 
+        box-shadow: 
+            inset 0 0 30px rgba(0, 255, 255, 0.4),
+            0 0 20px rgba(0, 255, 255, 0.6);
+    }
+    100% { 
+        box-shadow: 
+            inset 0 0 40px rgba(0, 255, 255, 0.6),
+            0 0 30px rgba(0, 255, 255, 0.8);
+    }
+}
+
+.entry[draggable="true"] {
+    cursor: grab;
+    transition: opacity 0.2s ease;
+}
+
+.entry[draggable="true"]:active {
+    cursor: grabbing;
 }
 
 /* Entry styling */
