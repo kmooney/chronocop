@@ -1,4 +1,4 @@
-# Time Auditor
+# CHRONOCOP
 
 A single-user Flask web application for local time tracking in 30-minute intervals with weekly calendar visualization and energy impact tracking.
 
