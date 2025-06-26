@@ -9,6 +9,7 @@ class TimeAuditCalendar {
         this.lastNotificationTime = null;
         this.hoverTimeout = null;
         this.tooltip = null;
+        this.hasInitiallyLoaded = false;
         this.init();
     }
 
@@ -21,6 +22,8 @@ class TimeAuditCalendar {
         this.initAudio();
         this.startTimeTracking();
         this.createTooltip();
+        this.createCurrentTimeLine();
+        this.updateCurrentTimeLine();
     }
 
     // Get Monday of current week
@@ -90,7 +93,7 @@ class TimeAuditCalendar {
         });
 
         document.getElementById('cancelBtn').addEventListener('click', () => {
-            this.playUISound('button');
+            this.playUISound('close');
             this.closeModal();
         });
 
@@ -617,7 +620,15 @@ Energy: ${entry.energy_impact.charAt(0).toUpperCase() + entry.energy_impact.slic
             const weekStartStr = this.formatDate(this.currentWeekStart);
             this.entries = await api.getEntries(weekStartStr);
             this.renderCalendar();
-            this.scrollToMorning();
+            
+            // Only scroll to morning on initial load
+            if (!this.hasInitiallyLoaded) {
+                this.scrollToMorning();
+                this.hasInitiallyLoaded = true;
+            }
+            
+            this.createCurrentTimeLine();
+            this.updateCurrentTimeLine();
         } catch (error) {
             console.error('Failed to load calendar:', error);
         }
@@ -643,6 +654,103 @@ Energy: ${entry.energy_impact.charAt(0).toUpperCase() + entry.energy_impact.slic
                 });
             }
         }, 100);
+    }
+
+    // Create current time line element
+    createCurrentTimeLine() {
+        // Remove existing line if it exists
+        const existingLine = document.getElementById('current-time-line');
+        if (existingLine) {
+            existingLine.remove();
+        }
+
+        // Create the glowing red laser line
+        this.currentTimeLine = document.createElement('div');
+        this.currentTimeLine.id = 'current-time-line';
+        this.currentTimeLine.style.cssText = `
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                #ff0000 10%, 
+                #ff3333 50%, 
+                #ff0000 90%, 
+                transparent 100%
+            );
+            box-shadow: 
+                0 0 10px #ff0000,
+                0 0 20px #ff0000,
+                0 0 30px #ff0000;
+            z-index: 1000;
+            pointer-events: none;
+            opacity: 0.9;
+            animation: currentTimePulse 2s ease-in-out infinite alternate;
+        `;
+
+        // Add pulsing animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes currentTimePulse {
+                0% { 
+                    box-shadow: 
+                        0 0 10px #ff0000,
+                        0 0 20px #ff0000,
+                        0 0 30px #ff0000;
+                    opacity: 0.9;
+                }
+                100% { 
+                    box-shadow: 
+                        0 0 15px #ff0000,
+                        0 0 30px #ff0000,
+                        0 0 45px #ff0000,
+                        0 0 60px rgba(255, 0, 0, 0.5);
+                    opacity: 1;
+                }
+            }
+        `;
+        if (!document.getElementById('current-time-style')) {
+            style.id = 'current-time-style';
+            document.head.appendChild(style);
+        }
+
+        // Add to calendar grid (which has the time slots)
+        const calendarGrid = document.getElementById('calendar');
+        if (calendarGrid) {
+            // Ensure the calendar grid has relative positioning
+            calendarGrid.style.position = 'relative';
+            calendarGrid.appendChild(this.currentTimeLine);
+        }
+    }
+
+    // Update current time line position
+    updateCurrentTimeLine() {
+        if (!this.currentTimeLine) return;
+
+        const now = new Date();
+        const currentHour = now.getHours();
+        const currentMinute = now.getMinutes();
+
+        // Calculate position based on current time
+        // Each hour has 2 slots (30-minute intervals)
+        const totalMinutes = currentHour * 60 + currentMinute;
+        const slotIndex = Math.floor(totalMinutes / 30);
+        const minutesIntoSlot = totalMinutes % 30;
+        
+        // Calculate pixel position
+        const isMobile = window.innerWidth <= 926;
+        const slotHeight = isMobile ? 25 : 40;
+        const progressInSlot = minutesIntoSlot / 30; // 0 to 1
+        const pixelPosition = (slotIndex * slotHeight) + (progressInSlot * slotHeight);
+
+        // Update position
+        this.currentTimeLine.style.top = pixelPosition + 'px';
+
+        // Schedule next update in 1 minute
+        setTimeout(() => {
+            this.updateCurrentTimeLine();
+        }, 60000);
     }
 
     // Render the calendar grid

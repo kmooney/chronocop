@@ -220,16 +220,19 @@ header h1 {
 }
 
 .calendar-body {
-    height: calc(100vh - 320px); /* Full viewport minus header space */
+    height: calc(100vh - 280px); /* Reduced header space to show more calendar */
+    max-height: calc(48 * 40px); /* Don't exceed grid height */
     overflow-y: auto;
     overflow-x: auto;
+    min-height: 400px; /* Minimum for usability */
 }
 
 .calendar-grid {
     display: grid;
     grid-template-columns: 80px repeat(7, 1fr);
     grid-template-rows: repeat(48, 40px);
-    height: 1920px; /* 48 rows × 40px - fixed height */
+    height: calc(48 * 40px); /* 48 rows × 40px = 1920px */
+    min-height: calc(48 * 40px);
 }
 
 .time-label {
@@ -962,6 +965,7 @@ form {
     
     .calendar-body {
         height: calc(100vh - 70px - 20px); /* Total minus header minus date header */
+        max-height: calc(48 * 25px); /* Don't exceed grid height in landscape */
         overflow-y: auto;
         overflow-x: hidden;
         -webkit-overflow-scrolling: touch;
