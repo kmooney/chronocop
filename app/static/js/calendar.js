@@ -137,6 +137,10 @@ class TimeAuditCalendar {
             clearTimeout(this.resizeTimeout);
             this.resizeTimeout = setTimeout(() => {
                 this.createDayHeaders();
+                // Redraw energy graph if day detail view is visible
+                if (document.getElementById('dayDetailView').style.display !== 'none') {
+                    this.loadDayDetail();
+                }
             }, 250);
         });
     }
@@ -808,6 +812,12 @@ Energy: ${entry.energy_impact.charAt(0).toUpperCase() + entry.energy_impact.slic
             
             dayHeader.appendChild(dayName);
             dayHeader.appendChild(dayDateEl);
+            
+            // Add click handler for day detail view
+            dayHeader.addEventListener('click', () => {
+                this.showDayDetail(dayDate);
+            });
+            
             calendarHeader.appendChild(dayHeader);
         }
     }
@@ -1088,15 +1098,384 @@ Energy: ${entry.energy_impact.charAt(0).toUpperCase() + entry.energy_impact.slic
     async deleteCurrentEntry() {
         if (!this.editingEntry) return;
         
-        if (confirm('Are you sure you want to delete this entry?')) {
-            try {
-                await api.deleteEntry(this.editingEntry.id);
-                this.closeModal();
-                this.loadCalendar();
-            } catch (error) {
-                console.error('Failed to delete entry:', error);
-            }
+        try {
+            await api.deleteEntry(this.editingEntry.id);
+            this.playUISound('close');
+            this.closeModal();
+            this.loadCalendar();
+        } catch (error) {
+            console.error('Failed to delete entry:', error);
+            this.playUISound('button'); // Error sound
         }
+    }
+
+    // Day Detail View Methods
+    showDayDetail(date) {
+        this.playUISound('button');
+        
+        // Store the selected date
+        this.selectedDate = new Date(date);
+        
+        // Switch views
+        document.getElementById('calendarView').style.display = 'none';
+        document.getElementById('dayDetailView').style.display = 'block';
+        
+        // Update day title
+        this.updateDayTitle();
+        
+        // Load day data
+        this.loadDayDetail();
+        
+        // Bind day detail navigation events
+        this.bindDayDetailEvents();
+    }
+
+    hideDayDetail() {
+        this.playUISound('button');
+        
+        // Switch back to calendar view
+        document.getElementById('dayDetailView').style.display = 'none';
+        document.getElementById('calendarView').style.display = 'block';
+    }
+
+    bindDayDetailEvents() {
+        // Remove existing listeners to prevent duplicates
+        const backBtn = document.getElementById('backToCalendar');
+        const prevBtn = document.getElementById('prevDay');
+        const nextBtn = document.getElementById('nextDay');
+        
+        // Clone and replace to remove all listeners
+        [backBtn, prevBtn, nextBtn].forEach(btn => {
+            if (btn) {
+                const newBtn = btn.cloneNode(true);
+                btn.parentNode.replaceChild(newBtn, btn);
+            }
+        });
+        
+        // Add new listeners
+        document.getElementById('backToCalendar').addEventListener('click', () => {
+            this.hideDayDetail();
+        });
+
+        document.getElementById('prevDay').addEventListener('click', () => {
+            this.playUISound('nav');
+            this.selectedDate.setDate(this.selectedDate.getDate() - 1);
+            this.updateDayTitle();
+            this.loadDayDetail();
+        });
+
+        document.getElementById('nextDay').addEventListener('click', () => {
+            this.playUISound('nav');
+            this.selectedDate.setDate(this.selectedDate.getDate() + 1);
+            this.updateDayTitle();
+            this.loadDayDetail();
+        });
+
+        // Tab switching
+        document.getElementById('energyTab').addEventListener('click', () => {
+            this.playUISound('button');
+            this.switchTab('energy');
+        });
+
+        document.getElementById('timelineTab').addEventListener('click', () => {
+            this.playUISound('button');
+            this.switchTab('timeline');
+        });
+    }
+
+    switchTab(tabName) {
+        // Remove active class from all tabs and panels
+        document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
+        
+        // Add active class to selected tab and panel
+        if (tabName === 'energy') {
+            document.getElementById('energyTab').classList.add('active');
+            document.getElementById('energyTabContent').classList.add('active');
+            // Redraw graph when switching to energy tab to ensure proper sizing
+            setTimeout(() => {
+                const dateStr = this.formatDate(this.selectedDate);
+                const dayEntries = this.entries.filter(entry => entry.date === dateStr);
+                this.drawEnergyGraph(dayEntries);
+            }, 50);
+        } else if (tabName === 'timeline') {
+            document.getElementById('timelineTab').classList.add('active');
+            document.getElementById('timelineTabContent').classList.add('active');
+        }
+    }
+
+    updateDayTitle() {
+        const options = { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        };
+        const title = this.selectedDate.toLocaleDateString('en-US', options);
+        document.getElementById('dayTitle').textContent = title;
+    }
+
+    async loadDayDetail() {
+        const dateStr = this.formatDate(this.selectedDate);
+        
+        // Get entries for this day
+        const dayEntries = this.entries.filter(entry => entry.date === dateStr);
+        
+        // Update statistics
+        this.updateDayStats(dayEntries);
+        
+        // Update timeline
+        this.updateDayTimeline(dayEntries);
+    }
+
+    updateDayStats(entries) {
+        // Basic stats
+        document.getElementById('totalEntries').textContent = entries.length;
+        
+        // Time tracked (each entry is 30 minutes)
+        const totalMinutes = entries.length * 30;
+        const hours = Math.floor(totalMinutes / 60);
+        const minutes = totalMinutes % 60;
+        document.getElementById('timeTracked').textContent = `${hours}h ${minutes}m`;
+        
+        // Type breakdown
+        const plannedCount = entries.filter(e => e.type === 'planned').length;
+        const reactiveCount = entries.filter(e => e.type === 'reactive').length;
+        document.getElementById('plannedCount').textContent = plannedCount;
+        document.getElementById('reactiveCount').textContent = reactiveCount;
+        
+        // Draw energy graph
+        this.drawEnergyGraph(entries);
+    }
+
+    drawEnergyGraph(entries) {
+        const canvas = document.getElementById('energyGraph');
+        const ctx = canvas.getContext('2d');
+        
+        // Set canvas size for high DPI displays
+        const rect = canvas.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = rect.width * dpr;
+        canvas.height = rect.height * dpr;
+        ctx.scale(dpr, dpr);
+        
+        // Clear canvas
+        ctx.clearRect(0, 0, rect.width, rect.height);
+        
+        if (entries.length === 0) {
+            // Draw empty state
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.font = '16px Rajdhani';
+            ctx.textAlign = 'center';
+            ctx.fillText('No data for this day', rect.width / 2, rect.height / 2);
+            return;
+        }
+        
+        // Sort entries by time
+        const sortedEntries = entries.sort((a, b) => {
+            return a.start_time.localeCompare(b.start_time);
+        });
+        
+        // Calculate cumulative energy levels
+        const dataPoints = [];
+        let cumulativeEnergy = 0;
+        
+        // Add starting point at beginning of day
+        dataPoints.push({ time: '00:00', energy: 0 });
+        
+        sortedEntries.forEach(entry => {
+            // Add energy value based on impact
+            const energyValue = entry.energy_impact === 'energised' ? 1 : 
+                               entry.energy_impact === 'drained' ? -1 : 0;
+            cumulativeEnergy += energyValue;
+            
+            dataPoints.push({
+                time: entry.start_time,
+                energy: cumulativeEnergy,
+                type: entry.energy_impact
+            });
+        });
+        
+        // Drawing parameters
+        const padding = 40;
+        const graphWidth = rect.width - (padding * 2);
+        const graphHeight = rect.height - (padding * 2);
+        
+        // Find min/max energy for scaling
+        const energyValues = dataPoints.map(p => p.energy);
+        const minEnergy = Math.min(0, Math.min(...energyValues));
+        const maxEnergy = Math.max(0, Math.max(...energyValues));
+        const energyRange = Math.max(1, maxEnergy - minEnergy);
+        
+        // Convert time to minutes for easier calculation
+        const timeToMinutes = (timeStr) => {
+            const [hours, minutes] = timeStr.split(':').map(Number);
+            return hours * 60 + minutes;
+        };
+        
+        // Draw grid lines
+        ctx.strokeStyle = 'rgba(0, 255, 255, 0.2)';
+        ctx.lineWidth = 1;
+        
+        // Vertical grid lines (every 4 hours)
+        for (let hour = 0; hour <= 24; hour += 4) {
+            const x = padding + (hour / 24) * graphWidth;
+            ctx.beginPath();
+            ctx.moveTo(x, padding);
+            ctx.lineTo(x, padding + graphHeight);
+            ctx.stroke();
+        }
+        
+        // Horizontal grid lines
+        const gridLines = 5;
+        for (let i = 0; i <= gridLines; i++) {
+            const y = padding + (i / gridLines) * graphHeight;
+            ctx.beginPath();
+            ctx.moveTo(padding, y);
+            ctx.lineTo(padding + graphWidth, y);
+            ctx.stroke();
+        }
+        
+        // Draw zero line
+        const zeroY = padding + graphHeight - ((0 - minEnergy) / energyRange) * graphHeight;
+        ctx.strokeStyle = 'rgba(255, 255, 0, 0.5)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(padding, zeroY);
+        ctx.lineTo(padding + graphWidth, zeroY);
+        ctx.stroke();
+        
+        // Draw energy line
+        ctx.strokeStyle = '#00ffff';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        
+        dataPoints.forEach((point, index) => {
+            const x = padding + (timeToMinutes(point.time) / (24 * 60)) * graphWidth;
+            const y = padding + graphHeight - ((point.energy - minEnergy) / energyRange) * graphHeight;
+            
+            if (index === 0) {
+                ctx.moveTo(x, y);
+            } else {
+                ctx.lineTo(x, y);
+            }
+        });
+        ctx.stroke();
+        
+        // Draw data points
+        dataPoints.forEach((point, index) => {
+            if (index === 0) return; // Skip the starting point
+            
+            const x = padding + (timeToMinutes(point.time) / (24 * 60)) * graphWidth;
+            const y = padding + graphHeight - ((point.energy - minEnergy) / energyRange) * graphHeight;
+            
+            // Color based on energy type
+            const colors = {
+                'energised': '#00ff00',
+                'neutral': '#ffff00',
+                'drained': '#ff4444'
+            };
+            
+            ctx.fillStyle = colors[point.type] || '#ffffff';
+            ctx.beginPath();
+            ctx.arc(x, y, 3, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            // Add glow effect
+            ctx.shadowColor = colors[point.type] || '#ffffff';
+            ctx.shadowBlur = 6;
+            ctx.beginPath();
+            ctx.arc(x, y, 2, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+        });
+        
+        // Draw axes labels
+        ctx.fillStyle = '#00ffff';
+        ctx.font = 'bold 13px Orbitron';
+        ctx.textAlign = 'center';
+        
+        // Time labels
+        for (let hour = 0; hour <= 24; hour += 4) {
+            const x = padding + (hour / 24) * graphWidth;
+            const timeStr = hour === 0 ? '12 AM' : 
+                          hour === 12 ? '12 PM' : 
+                          hour < 12 ? `${hour} AM` : `${hour - 12} PM`;
+            ctx.fillText(timeStr, x, rect.height - 25);
+        }
+        
+        // Energy level labels
+        ctx.textAlign = 'right';
+        ctx.font = 'bold 12px Orbitron';
+        for (let i = 0; i <= gridLines; i++) {
+            const energy = minEnergy + (i / gridLines) * energyRange;
+            const y = padding + graphHeight - (i / gridLines) * graphHeight;
+            ctx.fillText(energy.toFixed(0), padding - 15, y + 4);
+        }
+        
+        // Axis titles
+        ctx.fillStyle = '#ff00ff';
+        ctx.font = 'bold 14px Orbitron';
+        ctx.textAlign = 'center';
+        ctx.fillText('Time', rect.width / 2, rect.height - 5);
+        
+        ctx.save();
+        ctx.translate(12, rect.height / 2);
+        ctx.rotate(-Math.PI / 2);
+        ctx.fillText('Cumulative Energy Level', 0, 0);
+        ctx.restore();
+        
+    }
+
+    updateDayTimeline(entries) {
+        const timeline = document.getElementById('dayTimeline');
+        
+        if (entries.length === 0) {
+            timeline.innerHTML = '<div class="empty-timeline">No entries recorded for this day</div>';
+            return;
+        }
+        
+        // Sort entries by time
+        const sortedEntries = entries.sort((a, b) => {
+            return a.start_time.localeCompare(b.start_time);
+        });
+        
+        // Build timeline HTML
+        let html = '';
+        sortedEntries.forEach(entry => {
+            const [hour, minute] = entry.start_time.split(':').map(Number);
+            const timeStr = this.formatTimeAMPM(hour, minute);
+            
+            html += `
+                <div class="timeline-entry">
+                    <div class="timeline-time">${timeStr}</div>
+                    <div class="timeline-content">
+                        <div class="timeline-activity">${entry.activity.replace(/\n/g, '<br>')}</div>
+                        <div class="timeline-meta">
+                            <span class="timeline-type ${entry.type}">${entry.type}</span>
+                            <span class="timeline-energy ${entry.energy_impact}">
+                                ${this.getEnergyIcon(entry.energy_impact)} ${this.capitalizeFirst(entry.energy_impact)}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        timeline.innerHTML = html;
+    }
+
+    getEnergyIcon(energyLevel) {
+        switch (energyLevel) {
+            case 'energised': return '⚡';
+            case 'neutral': return '➖';
+            case 'drained': return '🔋';
+            default: return '';
+        }
+    }
+
+    capitalizeFirst(str) {
+        return str.charAt(0).toUpperCase() + str.slice(1);
     }
 }
 

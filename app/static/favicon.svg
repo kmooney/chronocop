@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a0033;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0a001a;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="1" result="coloredBlur"/>
+      <feMerge> 
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="32" height="32" fill="url(#bg)" rx="6"/>
+  
+  <!-- Clock face -->
+  <circle cx="16" cy="16" r="12" fill="none" stroke="#00ffff" stroke-width="1.5" filter="url(#glow)"/>
+  
+  <!-- Hour markers -->
+  <g stroke="#00ffff" stroke-width="1" filter="url(#glow)">
+    <!-- 12 o'clock -->
+    <line x1="16" y1="6" x2="16" y2="8"/>
+    <!-- 3 o'clock -->
+    <line x1="26" y1="16" x2="24" y2="16"/>
+    <!-- 6 o'clock -->
+    <line x1="16" y1="26" x2="16" y2="24"/>
+    <!-- 9 o'clock -->
+    <line x1="6" y1="16" x2="8" y2="16"/>
+  </g>
+  
+  <!-- Clock hands showing approximately 10:10 -->
+  <g stroke="#ff00ff" stroke-width="1.5" stroke-linecap="round" filter="url(#glow)">
+    <!-- Hour hand -->
+    <line x1="16" y1="16" x2="13" y2="11"/>
+    <!-- Minute hand -->
+    <line x1="16" y1="16" x2="21" y2="11"/>
+  </g>
+  
+  <!-- Center dot -->
+  <circle cx="16" cy="16" r="1.5" fill="#ff00ff" filter="url(#glow)"/>
+  
+  <!-- Digital elements -->
+  <g fill="#00ffff" font-family="monospace" font-size="3" filter="url(#glow)">
+    <!-- Small digital readout -->
+    <text x="16" y="23" text-anchor="middle" opacity="0.8">CC</text>
+  </g>
+  
+  <!-- Corner accent -->
+  <rect x="2" y="2" width="3" height="1" fill="#ff00ff" opacity="0.6"/>
+  <rect x="27" y="29" width="3" height="1" fill="#00ffff" opacity="0.6"/>
+</svg> 
