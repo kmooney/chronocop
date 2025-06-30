@@ -1,0 +1,72 @@
+{
+  "name": "chronocop",
+  "version": "1.0.0",
+  "description": "CHRONOCOP - Cyberpunk Time Auditing Application",
+  "main": "electron/main.js",
+  "homepage": "./",
+  "scripts": {
+    "electron": "electron .",
+    "debug": "CHRONOCOP_DEBUG=1 electron .",
+    "electron-dev": "concurrently \"node scripts/start-flask.js\" \"wait-on http://localhost:31337 && electron .\"",
+    "flask-only": "node scripts/start-flask.js",
+    "build-flask": "python build-standalone.py",
+    "build": "npm run build-flask && electron-builder",
+    "build-debug": "./scripts/debug-build.sh",
+    "run-debug": "./scripts/debug-run.sh",
+    "test-speed": "./scripts/test-startup-speed.sh",
+    "build-mac": "npm run build-flask && electron-builder --mac",
+    "build-win": "npm run build-flask && electron-builder --win",
+    "build-linux": "npm run build-flask && electron-builder --linux",
+    "dist": "npm run build-flask && electron-builder --publish=never"
+  },
+  "build": {
+    "appId": "com.chronocop.timeauditor",
+    "productName": "CHRONOCOP",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "electron/**/*",
+      "!venv/**/*",
+      "!node_modules/**/*",
+      "!.git/**/*",
+      "!build/**/*",
+      "!chronocop.spec",
+      "!dist/builder-*",
+      "!dist/*.dmg*",
+      "!dist/mac-*/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "dist/chronocop-server",
+        "to": "chronocop-server"
+      }
+    ],
+    "mac": {
+      "icon": "assets/icon.icns",
+      "category": "public.app-category.productivity",
+      "target": "dmg"
+    },
+    "win": {
+      "icon": "assets/icon.ico",
+      "target": "nsis"
+    },
+    "linux": {
+      "icon": "assets/icon.png",
+      "target": "AppImage"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  },
+  "devDependencies": {
+    "electron": "^27.0.0",
+    "electron-builder": "^24.6.4",
+    "concurrently": "^8.2.2",
+    "wait-on": "^7.0.1"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+} 

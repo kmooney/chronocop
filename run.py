@@ -1,6 +1,10 @@
+import os
 from app import create_app
 
 app = create_app()
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=31337) 
+    port = int(os.environ.get('FLASK_PORT', os.environ.get('PORT', 31337)))
+    debug = os.environ.get('FLASK_ENV') != 'production'
+    print(f"🚀 Starting Flask server on 127.0.0.1:{port}")
+    app.run(debug=debug, host='127.0.0.1', port=port) 
