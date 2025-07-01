@@ -78,6 +78,17 @@ function createWindow() {
       label: 'CHRONOCOP',
       submenu: [
         {
+          label: 'Show Window',
+          accelerator: 'CmdOrCtrl+Shift+S',
+          click: () => {
+            if (mainWindow) {
+              mainWindow.show();
+              mainWindow.focus();
+            }
+          }
+        },
+        { type: 'separator' },
+        {
           label: 'Open Developer Tools',
           accelerator: 'F12',
           click: () => {
@@ -128,7 +139,23 @@ function createWindow() {
     mainWindow.focus();
   });
 
-  // Handle window closed
+  // Handle window close (hide instead of quit to keep Flask server running)
+  mainWindow.on('close', (event) => {
+    if (!app.isQuitting) {
+      event.preventDefault();
+      mainWindow.hide();
+      
+      // On macOS, show in dock when hidden
+      if (process.platform === 'darwin') {
+        app.dock.show();
+      }
+      
+      console.log('📱 Window hidden, Flask server still running');
+      return false;
+    }
+  });
+
+  // Handle window closed (when actually destroyed)
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
@@ -313,20 +340,26 @@ app.whenReady().then(async () => {
   }
 
   app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
+    // Show existing window or create new one when clicking dock icon
+    if (mainWindow) {
+      mainWindow.show();
+      console.log('📱 Window restored from hidden state');
+    } else if (BrowserWindow.getAllWindows().length === 0) {
       createWindow();
     }
   });
 });
 
 app.on('window-all-closed', () => {
-  stopFlaskServer();
-  if (process.platform !== 'darwin') {
-    app.quit();
-  }
+  // Don't quit when all windows are closed - keep Flask server running
+  // Only actually quit on non-macOS if user explicitly quits
+  console.log('📱 All windows closed, but Flask server still running');
+  console.log('💡 Use Cmd+Q (or File > Quit) to fully quit the application');
 });
 
-app.on('before-quit', () => {
+app.on('before-quit', (event) => {
+  console.log('🛑 Application quitting, stopping Flask server...');
+  app.isQuitting = true;
   stopFlaskServer();
 });
 
