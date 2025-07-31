@@ -25,6 +25,19 @@
     --shadow: 0 0 20px rgba(0, 255, 255, 0.3);
     --glow: 0 0 10px rgba(0, 255, 255, 0.5);
     --pulse: 0 0 30px rgba(0, 255, 255, 0.4);
+
+    --background-primary: #0a0a0a;
+    --background-secondary: #1a1a1a;
+    --background-tertiary: #2a2a2a;
+    --text-muted: #666666;
+    --planned-color: #00ffff;
+    --reactive-color: #ff6600;
+    --energised-color: #00ff00;
+    --neutral-color: #ffff00;
+    --drained-color: #ff0000;
+
+    --font-main: 'Orbitron', monospace;
+    --font-secondary: 'Courier New', monospace;
 }
 
 * {
@@ -65,13 +78,60 @@ body::before {
 .container {
     max-width: 1400px;
     margin: 0 auto;
-    padding: 20px;
+    padding: 25px 20px 20px 20px; /* Extra top padding for traffic lights */
 }
 
 /* Header */
 header {
+    color: var(--text-primary);
+    padding: 0px 20px 20px 20px; /* No top padding, we'll handle drag area separately */
     margin-bottom: 30px;
     text-align: center;
+    position: relative;
+    -webkit-app-region: no-drag; /* Header itself is not draggable */
+}
+
+/* Header Actions */
+.header-actions {
+    position: absolute;
+    top: 25px; /* Positioned below the drag area */
+    right: 0;
+    z-index: 10;
+}
+
+.settings-btn {
+    background: var(--bg-secondary);
+    border: 2px solid var(--primary-color);
+    color: var(--primary-color);
+    padding: 12px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1.2rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.settings-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.4), transparent);
+    transition: left 0.5s;
+}
+
+.settings-btn:hover::before {
+    left: 100%;
+}
+
+.settings-btn:hover {
+    background: var(--primary-color);
+    color: var(--bg-primary);
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+    transform: scale(1.05);
 }
 
 header h1 {
@@ -1580,4 +1640,382 @@ form {
     .day-display span {
         font-size: 1.4rem;
     }
+}
+
+/* Settings Modal */
+.modal-body {
+    padding: 0;
+}
+
+.settings-section {
+    padding: 20px;
+}
+
+.settings-section h3 {
+    color: var(--text-secondary);
+    font-family: 'Orbitron', monospace;
+    font-weight: 600;
+    margin-bottom: 15px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 1px solid rgba(0, 255, 255, 0.3);
+    padding-bottom: 10px;
+}
+
+.settings-description {
+    color: var(--text-primary);
+    margin-bottom: 20px;
+    line-height: 1.6;
+    opacity: 0.8;
+}
+
+.settings-description a {
+    color: var(--primary-color);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(0, 255, 255, 0.3);
+    transition: all 0.3s ease;
+}
+
+.settings-description a:hover {
+    border-bottom-color: var(--primary-color);
+    text-shadow: 0 0 5px var(--primary-color);
+}
+
+.form-control {
+    width: 100%;
+    padding: 12px 16px;
+    background: var(--bg-secondary);
+    border: 2px solid rgba(0, 255, 255, 0.3);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-family: 'Rajdhani', monospace;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+}
+
+.form-text {
+    color: var(--text-primary);
+    opacity: 0.6;
+    font-size: 0.85rem;
+    margin-top: 5px;
+}
+
+.settings-actions {
+    display: flex;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.settings-status {
+    margin-top: 15px;
+    padding: 10px;
+    border-radius: 6px;
+    font-weight: 500;
+    display: none;
+}
+
+.settings-status.success {
+    background: rgba(0, 255, 65, 0.1);
+    border: 1px solid rgba(0, 255, 65, 0.3);
+    color: var(--success-color);
+}
+
+.settings-status.error {
+    background: rgba(255, 0, 102, 0.1);
+    border: 1px solid rgba(255, 0, 102, 0.3);
+    color: var(--danger-color);
+}
+
+/* Summary Tab Content */
+.day-summary-content {
+    padding: 20px;
+}
+
+.summary-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid rgba(0, 255, 255, 0.3);
+}
+
+.summary-header h3 {
+    color: var(--text-secondary);
+    font-family: 'Orbitron', monospace;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 0;
+}
+
+.summary-content {
+    background: rgba(17, 17, 17, 0.5);
+    border: 1px solid rgba(0, 255, 255, 0.2);
+    border-radius: 12px;
+    padding: 20px;
+    min-height: 200px;
+    position: relative;
+}
+
+.summary-placeholder {
+    text-align: center;
+    color: var(--text-primary);
+    opacity: 0.7;
+}
+
+.summary-placeholder p {
+    margin-bottom: 10px;
+}
+
+.summary-placeholder small {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.summary-text {
+    color: var(--text-primary);
+    line-height: 1.7;
+    white-space: pre-wrap;
+    user-select: text;
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+}
+
+.summary-text *,
+.summary-bullet,
+.summary-line {
+    user-select: text;
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+}
+
+.summary-text ul {
+    list-style: none;
+    padding: 0;
+}
+
+.summary-text li {
+    margin-bottom: 8px;
+    padding-left: 0;
+    position: relative;
+}
+
+.summary-text li::before {
+    content: '▶';
+    color: var(--primary-color);
+    margin-right: 8px;
+    font-size: 0.8rem;
+}
+
+.summary-meta {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid rgba(0, 255, 255, 0.2);
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    opacity: 0.6;
+}
+
+.summary-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    color: var(--text-secondary);
+}
+
+.summary-loading .spinner {
+    margin-bottom: 15px;
+}
+
+.summary-loading p {
+    font-family: 'Orbitron', monospace;
+    font-weight: 500;
+    letter-spacing: 1px;
+}
+
+/* Mobile Responsiveness for New Features */
+@media (max-width: 768px) {
+    .header-actions {
+        position: static;
+        text-align: center;
+        margin-bottom: 15px;
+    }
+    
+    .settings-btn {
+        font-size: 1rem;
+        padding: 10px 14px;
+    }
+    
+    .summary-header {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+    
+    .settings-actions {
+        flex-direction: column;
+    }
+    
+    .settings-actions .btn {
+        width: 100%;
+    }
+}
+
+.summary-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.summary-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.summary-header h3 {
+    margin: 0;
+}
+
+/* Weekly Summary Modal Styles */
+#weeklySummaryModal .modal-content {
+    width: 90%;
+    max-width: 900px;
+    height: 80vh;
+    max-height: 700px;
+    margin: 5vh auto;
+    display: flex;
+    flex-direction: column;
+}
+
+#weeklySummaryModal .modal-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.weekly-summary-section {
+    padding: 0;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.weekly-summary-section .summary-header {
+    margin-bottom: 25px;
+    padding-top: 25px;
+    padding-bottom: 20px;
+    padding-left: 25px;
+    padding-right: 25px;
+    border-bottom: 1px solid rgba(0, 255, 255, 0.3);
+    flex-shrink: 0;
+}
+
+.weekly-summary-section .summary-header h3 {
+    color: var(--text-secondary);
+    font-family: 'Orbitron', monospace;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+.weekly-summary-section .summary-content {
+    margin-top: 0;
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 10px;
+    border: none;
+}
+
+/* Custom scrollbar for weekly summary content */
+.weekly-summary-section .summary-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.weekly-summary-section .summary-content::-webkit-scrollbar-track {
+    background: rgba(0, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+.weekly-summary-section .summary-content::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 4px;
+    opacity: 0.7;
+}
+
+.weekly-summary-section .summary-content::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-color);
+    opacity: 1;
+}
+
+/* Ensure weekly summary text is selectable */
+#weeklySummaryText {
+    user-select: text;
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+}
+
+#weeklySummaryText *,
+#weeklySummaryText .summary-bullet,
+#weeklySummaryText .summary-line {
+    user-select: text;
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+}
+
+/* Global cyberpunk scrollbar styles */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(0, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 4px;
+    opacity: 0.7;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-color);
+    opacity: 1;
+}
+
+::-webkit-scrollbar-corner {
+    background: rgba(0, 255, 255, 0.1);
+}
+
+/* Electron window dragging - 25px area at top */
+body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 25px;
+    -webkit-app-region: drag;
+    z-index: 9999;
+    pointer-events: auto;
 }

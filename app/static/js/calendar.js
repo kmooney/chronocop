@@ -1113,21 +1113,38 @@ Energy: ${entry.energy_impact.charAt(0).toUpperCase() + entry.energy_impact.slic
     showDayDetail(date) {
         this.playUISound('button');
         
-        // Store the selected date
-        this.selectedDate = new Date(date);
+        // Handle both Date objects and date strings
+        if (date instanceof Date) {
+            this.selectedDate = date;
+        } else {
+            this.selectedDate = this.parseDate(date);
+        }
         
-        // Switch views
+        this.updateDayTitle();
+        this.loadDayDetail();
+        this.bindDayDetailEvents();
+        
+        // Update summary manager with properly formatted date string
+        if (window.summaryManager) {
+            const formattedDate = this.formatDate(this.selectedDate);
+            window.summaryManager.setCurrentDate(formattedDate);
+            // Load summary if currently on summary tab
+            const summaryTab = document.getElementById('summaryTab');
+            if (summaryTab && summaryTab.classList.contains('active')) {
+                window.summaryManager.loadSummary(formattedDate);
+            }
+        }
+        
+        // Switch to day detail view
         document.getElementById('calendarView').style.display = 'none';
         document.getElementById('dayDetailView').style.display = 'block';
         
-        // Update day title
-        this.updateDayTitle();
-        
-        // Load day data
-        this.loadDayDetail();
-        
-        // Bind day detail navigation events
-        this.bindDayDetailEvents();
+        // Open settings modal if either settings button is clicked
+        document.getElementById('settingsBtn2').addEventListener('click', () => {
+            if (window.settingsManager) {
+                window.settingsManager.openSettingsModal();
+            }
+        });
     }
 
     hideDayDetail() {
@@ -1162,6 +1179,16 @@ Energy: ${entry.energy_impact.charAt(0).toUpperCase() + entry.energy_impact.slic
             this.selectedDate.setDate(this.selectedDate.getDate() - 1);
             this.updateDayTitle();
             this.loadDayDetail();
+            // Update summary manager with new date
+            if (window.summaryManager) {
+                const formattedDate = this.formatDate(this.selectedDate);
+                window.summaryManager.setCurrentDate(formattedDate);
+                // If Summary tab is active, load summary for new date
+                const summaryTab = document.getElementById('summaryTab');
+                if (summaryTab && summaryTab.classList.contains('active')) {
+                    window.summaryManager.loadSummary(formattedDate);
+                }
+            }
         });
 
         document.getElementById('nextDay').addEventListener('click', () => {
@@ -1169,6 +1196,16 @@ Energy: ${entry.energy_impact.charAt(0).toUpperCase() + entry.energy_impact.slic
             this.selectedDate.setDate(this.selectedDate.getDate() + 1);
             this.updateDayTitle();
             this.loadDayDetail();
+            // Update summary manager with new date
+            if (window.summaryManager) {
+                const formattedDate = this.formatDate(this.selectedDate);
+                window.summaryManager.setCurrentDate(formattedDate);
+                // If Summary tab is active, load summary for new date
+                const summaryTab = document.getElementById('summaryTab');
+                if (summaryTab && summaryTab.classList.contains('active')) {
+                    window.summaryManager.loadSummary(formattedDate);
+                }
+            }
         });
 
         // Tab switching
@@ -1181,6 +1218,14 @@ Energy: ${entry.energy_impact.charAt(0).toUpperCase() + entry.energy_impact.slic
             this.playUISound('button');
             this.switchTab('timeline');
         });
+
+        // Summary tab switching
+        if (document.getElementById('summaryTab')) {
+            document.getElementById('summaryTab').addEventListener('click', () => {
+                this.playUISound('button');
+                this.switchTab('summary');
+            });
+        }
     }
 
     switchTab(tabName) {
@@ -1194,13 +1239,23 @@ Energy: ${entry.energy_impact.charAt(0).toUpperCase() + entry.energy_impact.slic
             document.getElementById('energyTabContent').classList.add('active');
             // Redraw graph when switching to energy tab to ensure proper sizing
             setTimeout(() => {
-                const dateStr = this.formatDate(this.selectedDate);
-                const dayEntries = this.entries.filter(entry => entry.date === dateStr);
+                const formattedDate = this.formatDate(this.selectedDate);
+                const dayEntries = this.entries.filter(entry => entry.date === formattedDate);
+                console.log(`Switching to energy tab for ${formattedDate}, found ${dayEntries.length} entries`);
                 this.drawEnergyGraph(dayEntries);
-            }, 50);
+            }, 150); // Increased delay to ensure tab is fully visible
         } else if (tabName === 'timeline') {
             document.getElementById('timelineTab').classList.add('active');
             document.getElementById('timelineTabContent').classList.add('active');
+        } else if (tabName === 'summary') {
+            document.getElementById('summaryTab').classList.add('active');
+            document.getElementById('summaryTabContent').classList.add('active');
+            // Update summary manager and load summary for current date
+            if (window.summaryManager) {
+                const formattedDate = this.formatDate(this.selectedDate);
+                window.summaryManager.setCurrentDate(formattedDate);
+                window.summaryManager.loadSummary(formattedDate);
+            }
         }
     }
 
@@ -1216,16 +1271,31 @@ Energy: ${entry.energy_impact.charAt(0).toUpperCase() + entry.energy_impact.slic
     }
 
     async loadDayDetail() {
-        const dateStr = this.formatDate(this.selectedDate);
+        const formattedDate = this.formatDate(this.selectedDate);
+        
+        // Update summary manager with current date whenever day detail loads
+        if (window.summaryManager) {
+            window.summaryManager.setCurrentDate(formattedDate);
+        }
         
         // Get entries for this day
-        const dayEntries = this.entries.filter(entry => entry.date === dateStr);
+        const dayEntries = this.entries.filter(entry => entry.date === formattedDate);
+        
+        console.log(`Loading day detail for ${formattedDate}, found ${dayEntries.length} entries`);
         
         // Update statistics
         this.updateDayStats(dayEntries);
         
         // Update timeline
         this.updateDayTimeline(dayEntries);
+        
+        // Ensure energy graph is drawn if energy tab is active (default)
+        const energyTab = document.getElementById('energyTab');
+        if (energyTab && energyTab.classList.contains('active')) {
+            setTimeout(() => {
+                this.drawEnergyGraph(dayEntries);
+            }, 100);
+        }
     }
 
     updateDayStats(entries) {
@@ -1250,10 +1320,22 @@ Energy: ${entry.energy_impact.charAt(0).toUpperCase() + entry.energy_impact.slic
 
     drawEnergyGraph(entries) {
         const canvas = document.getElementById('energyGraph');
+        if (!canvas) {
+            console.error('Energy graph canvas not found');
+            return;
+        }
+        
         const ctx = canvas.getContext('2d');
         
         // Set canvas size for high DPI displays
         const rect = canvas.getBoundingClientRect();
+        if (rect.width === 0 || rect.height === 0) {
+            console.log('Canvas has no dimensions, retrying...');
+            // Retry after a short delay if canvas isn't ready
+            setTimeout(() => this.drawEnergyGraph(entries), 100);
+            return;
+        }
+        
         const dpr = window.devicePixelRatio || 1;
         canvas.width = rect.width * dpr;
         canvas.height = rect.height * dpr;
@@ -1261,6 +1343,8 @@ Energy: ${entry.energy_impact.charAt(0).toUpperCase() + entry.energy_impact.slic
         
         // Clear canvas
         ctx.clearRect(0, 0, rect.width, rect.height);
+        
+        console.log(`Drawing energy graph with ${entries.length} entries for date:`, this.formatDate(this.selectedDate));
         
         if (entries.length === 0) {
             // Draw empty state
@@ -1275,6 +1359,8 @@ Energy: ${entry.energy_impact.charAt(0).toUpperCase() + entry.energy_impact.slic
         const sortedEntries = entries.sort((a, b) => {
             return a.start_time.localeCompare(b.start_time);
         });
+        
+        console.log('Sorted entries:', sortedEntries.map(e => `${e.start_time}: ${e.energy_impact}`));
         
         // Calculate cumulative energy levels
         const dataPoints = [];
@@ -1295,6 +1381,8 @@ Energy: ${entry.energy_impact.charAt(0).toUpperCase() + entry.energy_impact.slic
                 type: entry.energy_impact
             });
         });
+        
+        console.log('Data points:', dataPoints);
         
         // Drawing parameters
         const padding = 40;
@@ -1481,5 +1569,5 @@ Energy: ${entry.energy_impact.charAt(0).toUpperCase() + entry.energy_impact.slic
 
 // Initialize calendar when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    new TimeAuditCalendar();
+    window.calendar = new TimeAuditCalendar();
 }); 

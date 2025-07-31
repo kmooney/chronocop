@@ -49,10 +49,11 @@ if (process.env.NODE_ENV === 'development') {
 function createWindow() {
   // Create the browser window
   mainWindow = new BrowserWindow({
-    width: 1400,
+    width: 700,
     height: 900,
-    minWidth: 1200,
+    minWidth: 700,
     minHeight: 700,
+    titleBarStyle: 'hiddenInset', // Hide title bar but keep traffic light buttons
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
@@ -62,7 +63,6 @@ function createWindow() {
     },
     icon: path.join(__dirname, '../assets/icon.png'),
     title: 'CHRONOCOP',
-    titleBarStyle: 'default',
     show: false, // Don't show until ready
     backgroundColor: '#0a0a0a' // Dark background matching the app
   });

@@ -15,6 +15,10 @@
         <div id="calendarView" class="view">
             <header>
                 <h1>CHRONOCOP</h1>
+                <div class="header-actions">
+                    <button id="weeklySummaryBtn" class="settings-btn" title="Weekly AI Summary">🧠</button>
+                    <button id="settingsBtn" class="settings-btn" title="Settings">⚙️</button>
+                </div>
                 <div class="week-navigation">
                     <button id="prevWeek" class="nav-btn">&lt; Previous</button>
                     <button id="currentWeek" class="nav-btn current">Current Week</button>
@@ -44,6 +48,10 @@
         <div id="dayDetailView" class="view" style="display: none;">
             <header>
                 <h1>CHRONOCOP</h1>
+                <div class="header-actions">
+                    <button id="weeklySummaryBtn2" class="settings-btn" title="Weekly AI Summary">🧠</button>
+                    <button id="settingsBtn2" class="settings-btn" title="Settings">⚙️</button>
+                </div>
                 <div class="day-detail-navigation">
                     <button id="backToCalendar" class="nav-btn">&lt; Back to Calendar</button>
                     <button id="prevDay" class="nav-btn">&lt; Previous Day</button>
@@ -81,6 +89,7 @@
                         <div class="tab-buttons">
                             <button id="energyTab" class="tab-button active">Energy Graph</button>
                             <button id="timelineTab" class="tab-button">Timeline</button>
+                            <button id="summaryTab" class="tab-button">AI Summary</button>
                         </div>
                         
                         <div class="tab-content">
@@ -115,10 +124,97 @@
                                     </div>
                                 </div>
                             </div>
+
+                            <div id="summaryTabContent" class="tab-panel">
+                                <div class="day-summary-content">
+                                    <div class="summary-header">
+                                        <h3>AI-Generated Daily Summary</h3>
+                                        <div class="summary-actions">
+                                            <button id="generateSummaryBtn" class="btn btn-primary">Generate Summary</button>
+                                            <button id="copySummaryBtn" class="btn btn-secondary" style="display: none;" title="Copy summary to clipboard">📋 Copy Text</button>
+                                        </div>
+                                    </div>
+                                    <div id="summaryContent" class="summary-content">
+                                        <div id="summaryPlaceholder" class="summary-placeholder">
+                                            <p>📝 Click "Generate Summary" to create an AI analysis of your day's activities.</p>
+                                            <p><small>Note: This requires a Claude API key to be configured in Settings.</small></p>
+                                        </div>
+                                        <div id="summaryText" class="summary-text" style="display: none;"></div>
+                                        <div id="summaryMeta" class="summary-meta" style="display: none;"></div>
+                                    </div>
+                                    <div id="summaryLoading" class="summary-loading" style="display: none;">
+                                        <div class="spinner"></div>
+                                        <p>Generating AI summary...</p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </main>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Settings</h2>
+                <span class="close" id="closeSettingsModal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="settings-section">
+                    <h3>Claude AI Configuration</h3>
+                    <p class="settings-description">
+                        Configure your Claude API key to enable AI-generated daily summaries. 
+                        Get your API key from <a href="https://console.anthropic.com/" target="_blank">console.anthropic.com</a>.
+                    </p>
+                    <div class="form-group">
+                        <label for="claudeApiKey">Claude API Key:</label>
+                        <input type="password" id="claudeApiKey" name="claude_api_key" 
+                               placeholder="sk-ant-..." class="form-control">
+                        <small class="form-text">Your API key is stored locally and encrypted.</small>
+                    </div>
+                    <div class="settings-actions">
+                        <button id="testClaudeConnection" class="btn btn-secondary">Test Connection</button>
+                        <button id="saveSettings" class="btn btn-primary">Save Settings</button>
+                    </div>
+                    <div id="settingsStatus" class="settings-status"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Weekly Summary Modal -->
+    <div id="weeklySummaryModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Weekly AI Summary</h2>
+                <span class="close" id="closeWeeklySummaryModal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="weekly-summary-section">
+                    <div class="summary-header">
+                        <h3 id="weeklyDateRange">Week of [Date Range]</h3>
+                        <div class="summary-actions">
+                            <button id="generateWeeklySummaryBtn" class="btn btn-primary">Generate Weekly Summary</button>
+                            <button id="copyWeeklySummaryBtn" class="btn btn-secondary" style="display: none;" title="Copy summary to clipboard">📋 Copy Text</button>
+                        </div>
+                    </div>
+                    <div id="weeklySummaryContent" class="summary-content">
+                        <div id="weeklySummaryPlaceholder" class="summary-placeholder">
+                            <p>📊 Click "Generate Weekly Summary" to create an AI analysis of your week's activities.</p>
+                            <p><small>This will analyze all tracked time entries for the current week and provide strategic insights.</small></p>
+                        </div>
+                        <div id="weeklySummaryText" class="summary-text" style="display: none;"></div>
+                        <div id="weeklySummaryMeta" class="summary-meta" style="display: none;"></div>
+                    </div>
+                    <div id="weeklySummaryLoading" class="summary-loading" style="display: none;">
+                        <div class="spinner"></div>
+                        <p>Analyzing weekly data and generating comprehensive summary...</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
