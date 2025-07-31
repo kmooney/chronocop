@@ -21,7 +21,6 @@ class TimeAuditCalendar {
         this.bindEvents();
         this.populateTimeSelect();
         this.loadCalendar();
-        this.initAudio();
         this.startTimeTracking();
         this.createTooltip();
         this.createCurrentTimeLine();
@@ -71,43 +70,36 @@ class TimeAuditCalendar {
     bindEvents() {
         // Week navigation
         document.getElementById('prevWeek').addEventListener('click', () => {
-            this.playUISound('nav');
             this.currentWeekStart = this.getWeekStart(-1);
             this.loadCalendar();
         });
 
         document.getElementById('nextWeek').addEventListener('click', () => {
-            this.playUISound('nav');
             this.currentWeekStart = this.getWeekStart(1);
             this.loadCalendar();
         });
 
         document.getElementById('currentWeek').addEventListener('click', () => {
-            this.playUISound('button');
             this.setCurrentWeek();
             this.loadCalendar();
         });
 
         // Modal events
         document.getElementById('closeModal').addEventListener('click', () => {
-            this.playUISound('close');
             this.closeModal();
         });
 
         document.getElementById('cancelBtn').addEventListener('click', () => {
-            this.playUISound('close');
             this.closeModal();
         });
 
         document.getElementById('deleteBtn').addEventListener('click', () => {
-            this.playUISound('button');
             this.deleteCurrentEntry();
         });
 
         // Form submission
         document.getElementById('entryForm').addEventListener('submit', (e) => {
             e.preventDefault();
-            this.playUISound('button');
             this.saveEntry();
         });
 
@@ -126,11 +118,6 @@ class TimeAuditCalendar {
             }
         });
 
-        // Initialize audio on first user interaction
-        document.addEventListener('click', () => {
-            this.initAudio();
-        }, { once: true });
-
         // Update day headers on window resize (for mobile rotation)
         window.addEventListener('resize', () => {
             // Debounce resize events
@@ -143,167 +130,6 @@ class TimeAuditCalendar {
                 }
             }, 250);
         });
-    }
-
-    // Initialize Web Audio API
-    initAudio() {
-        if (!this.audioContext) {
-            try {
-                this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            } catch (e) {
-                console.log('Web Audio API not supported');
-            }
-        }
-    }
-
-    // Create and play cyberpunk chime sound
-    playChime() {
-        if (!this.audioContext) return;
-
-        try {
-            // Resume audio context if suspended
-            if (this.audioContext.state === 'suspended') {
-                this.audioContext.resume();
-            }
-
-            // Create louder, more prominent cyberpunk-style chime that repeats
-            const now = this.audioContext.currentTime;
-            
-            // Play the alarm sequence 3 times for more prominence
-            for (let repeat = 0; repeat < 3; repeat++) {
-                const baseTime = now + (repeat * 1.0);
-                
-                // First tone - high pitch
-                const oscillator1 = this.audioContext.createOscillator();
-                const gain1 = this.audioContext.createGain();
-                oscillator1.connect(gain1);
-                gain1.connect(this.audioContext.destination);
-                oscillator1.frequency.setValueAtTime(880, baseTime); // A5
-                gain1.gain.setValueAtTime(0.8, baseTime);
-                gain1.gain.exponentialRampToValueAtTime(0.01, baseTime + 0.5);
-                oscillator1.start(baseTime);
-                oscillator1.stop(baseTime + 0.5);
-
-                // Second tone - mid pitch with delay
-                const oscillator2 = this.audioContext.createOscillator();
-                const gain2 = this.audioContext.createGain();
-                oscillator2.connect(gain2);
-                gain2.connect(this.audioContext.destination);
-                oscillator2.frequency.setValueAtTime(660, baseTime + 0.1); // E5
-                gain2.gain.setValueAtTime(0.6, baseTime + 0.1);
-                gain2.gain.exponentialRampToValueAtTime(0.01, baseTime + 0.6);
-                oscillator2.start(baseTime + 0.1);
-                oscillator2.stop(baseTime + 0.6);
-
-                // Third tone - lower pitch
-                const oscillator3 = this.audioContext.createOscillator();
-                const gain3 = this.audioContext.createGain();
-                oscillator3.connect(gain3);
-                gain3.connect(this.audioContext.destination);
-                oscillator3.frequency.setValueAtTime(440, baseTime + 0.2); // A4
-                gain3.gain.setValueAtTime(0.5, baseTime + 0.2);
-                gain3.gain.exponentialRampToValueAtTime(0.01, baseTime + 0.7);
-                oscillator3.start(baseTime + 0.2);
-                oscillator3.stop(baseTime + 0.7);
-            }
-
-        } catch (e) {
-            console.log('Error playing chime:', e);
-        }
-    }
-
-    // Play UI sound effects
-    playUISound(type) {
-        if (!this.audioContext) return;
-
-        try {
-            if (this.audioContext.state === 'suspended') {
-                this.audioContext.resume();
-            }
-
-            const now = this.audioContext.currentTime;
-            const oscillator = this.audioContext.createOscillator();
-            const gain = this.audioContext.createGain();
-            
-            oscillator.connect(gain);
-            gain.connect(this.audioContext.destination);
-
-            let frequency, duration, volume;
-
-            switch (type) {
-                case 'click':
-                    // Higher pitched bleep for regular clicks
-                    frequency = 800;
-                    duration = 0.1;
-                    volume = 0.9;
-                    break;
-                case 'select':
-                    // Mid pitched bloop for selecting entries
-                    frequency = 600;
-                    duration = 0.15;
-                    volume = 0.8;
-                    break;
-                case 'button':
-                    // Lower pitched beep for buttons
-                    frequency = 400;
-                    duration = 0.12;
-                    volume = 0.7;
-                    break;
-                case 'open':
-                    // Rising tone for opening modals
-                    frequency = 300;
-                    duration = 0.2;
-                    volume = 0.6;
-                    oscillator.frequency.setValueAtTime(300, now);
-                    oscillator.frequency.exponentialRampToValueAtTime(600, now + duration);
-                    break;
-                case 'close':
-                    // Falling tone for closing modals
-                    frequency = 600;
-                    duration = 0.2;
-                    volume = 0.6;
-                    oscillator.frequency.setValueAtTime(600, now);
-                    oscillator.frequency.exponentialRampToValueAtTime(300, now + duration);
-                    break;
-                case 'nav':
-                    // Double bleep for navigation
-                    frequency = 700;
-                    duration = 0.08;
-                    volume = 0.7;
-                    // First bleep
-                    gain.gain.setValueAtTime(volume, now);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + duration);
-                    // Second bleep
-                    setTimeout(() => {
-                        if (this.audioContext) {
-                            this.playUISound('nav-second');
-                        }
-                    }, 100);
-                    break;
-                case 'nav-second':
-                    frequency = 900;
-                    duration = 0.08;
-                    volume = 0.6;
-                    break;
-                default:
-                    frequency = 500;
-                    duration = 0.1;
-                    volume = 0.7;
-            }
-
-            if (type !== 'open' && type !== 'close') {
-                oscillator.frequency.setValueAtTime(frequency, now);
-            }
-            
-            gain.gain.setValueAtTime(volume, now);
-            gain.gain.exponentialRampToValueAtTime(0.01, now + duration);
-            
-            oscillator.start(now);
-            oscillator.stop(now + duration);
-
-        } catch (e) {
-            console.log('Error playing UI sound:', e);
-        }
     }
 
     // Start time tracking notifications
@@ -328,136 +154,135 @@ class TimeAuditCalendar {
             // Prevent duplicate notifications within the same minute
             if (this.lastNotificationTime !== currentTime) {
                 this.lastNotificationTime = currentTime;
-                this.playChime();
-                
-                // Show a subtle notification
                 this.showTimeTrackingReminder();
             }
         }
     }
 
-    // Show persistent visual reminder that requires dismissal
+    // Show professional time tracking reminder
     showTimeTrackingReminder() {
         // Don't show multiple reminders at once
-        if (document.getElementById('time-tracking-alarm')) {
+        if (document.getElementById('time-tracking-reminder')) {
             return;
         }
 
-        // Create overlay
-        const overlay = document.createElement('div');
-        overlay.id = 'time-tracking-alarm';
-        overlay.style.cssText = `
+        // Create subtle notification that matches the app's aesthetic
+        const notification = document.createElement('div');
+        notification.id = 'time-tracking-reminder';
+        notification.style.cssText = `
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
+            top: 20px;
+            right: 20px;
+            background: #faf8f5;
+            border: 1px solid #e6ddd4;
+            border-radius: 12px;
+            padding: 16px 20px;
+            box-shadow: 0 4px 6px -1px rgba(44, 36, 22, 0.12), 0 2px 4px -1px rgba(44, 36, 22, 0.08);
             z-index: 10000;
+            max-width: 320px;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: #2c2416;
+            animation: slideInRight 0.3s ease-out;
+        `;
+
+        const header = document.createElement('div');
+        header.style.cssText = `
             display: flex;
             align-items: center;
-            justify-content: center;
-            animation: alarmPulse 1s ease-in-out infinite alternate;
+            gap: 8px;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #8b4513;
         `;
-
-        // Create alarm dialog
-        const alarm = document.createElement('div');
-        alarm.style.cssText = `
-            background: linear-gradient(135deg, #ff0066, #00ffff, #ff00ff);
-            color: #000;
-            padding: 30px 40px;
-            border-radius: 15px;
-            font-family: 'Orbitron', monospace;
-            font-weight: 700;
-            text-align: center;
-            box-shadow: 0 0 50px rgba(0, 255, 255, 0.8);
-            border: 3px solid #00ffff;
-            max-width: 400px;
-            min-width: 320px;
-            animation: alarmShake 0.5s ease-in-out infinite;
-        `;
-
-        const title = document.createElement('div');
-        title.style.cssText = `
-            font-size: 24px;
-            margin-bottom: 15px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-            white-space: nowrap;
-        `;
-        title.innerHTML = '🚨 CHRONOCOP ALERT 🚨';
+        header.innerHTML = '⏰ Time Tracking Reminder';
 
         const message = document.createElement('div');
         message.style.cssText = `
-            font-size: 16px;
-            margin-bottom: 25px;
-            font-family: 'Rajdhani', monospace;
-            font-weight: 600;
+            font-size: 14px;
+            color: #5d5347;
+            margin-bottom: 12px;
+            line-height: 1.5;
         `;
-        message.textContent = 'Time to track your last 30 minutes!';
+        message.textContent = 'Time to log your recent activities and maintain your productivity tracking.';
 
         const dismissBtn = document.createElement('button');
         dismissBtn.style.cssText = `
-            background: linear-gradient(45deg, #000, #333);
-            color: #00ffff;
-            border: 2px solid #00ffff;
-            padding: 12px 25px;
+            background: #f5f2ed;
+            color: #2c2416;
+            border: 1px solid #e6ddd4;
+            padding: 6px 12px;
             border-radius: 8px;
-            font-family: 'Orbitron', monospace;
-            font-weight: 600;
-            font-size: 14px;
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 500;
             cursor: pointer;
-            text-transform: uppercase;
-            box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
+            float: right;
         `;
         dismissBtn.textContent = 'Dismiss';
 
-        // Add hover effect
         dismissBtn.addEventListener('mouseenter', () => {
-            dismissBtn.style.background = 'linear-gradient(45deg, #00ffff, #ff00ff)';
-            dismissBtn.style.color = '#000';
-            dismissBtn.style.transform = 'scale(1.05)';
-            this.playUISound('button');
+            dismissBtn.style.background = '#ede8e1';
+            dismissBtn.style.borderColor = '#8b4513';
+            dismissBtn.style.transform = 'translateY(-1px)';
         });
 
         dismissBtn.addEventListener('mouseleave', () => {
-            dismissBtn.style.background = 'linear-gradient(45deg, #000, #333)';
-            dismissBtn.style.color = '#00ffff';
-            dismissBtn.style.transform = 'scale(1)';
+            dismissBtn.style.background = '#f5f2ed';
+            dismissBtn.style.borderColor = '#e6ddd4';
+            dismissBtn.style.transform = 'translateY(0)';
         });
 
         // Dismiss functionality
         dismissBtn.addEventListener('click', () => {
-            this.playUISound('close');
-            overlay.remove();
-            if (style.parentNode) {
-                style.parentNode.removeChild(style);
-            }
+            notification.style.animation = 'slideOutRight 0.3s ease-in';
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+                if (style.parentNode) {
+                    style.parentNode.removeChild(style);
+                }
+            }, 300);
         });
+
+        // Auto-dismiss after 8 seconds
+        setTimeout(() => {
+            if (notification.parentNode) {
+                dismissBtn.click();
+            }
+        }, 8000);
 
         // Add animations
         const style = document.createElement('style');
         style.textContent = `
-            @keyframes alarmPulse {
-                0% { background: rgba(0, 0, 0, 0.8); }
-                100% { background: rgba(255, 0, 102, 0.2); }
+            @keyframes slideInRight {
+                from { 
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+                to { 
+                    transform: translateX(0);
+                    opacity: 1;
+                }
             }
-            @keyframes alarmShake {
-                0%, 100% { transform: translateX(0); }
-                25% { transform: translateX(-2px); }
-                75% { transform: translateX(2px); }
+            @keyframes slideOutRight {
+                from { 
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+                to { 
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
             }
         `;
         document.head.appendChild(style);
 
-        alarm.appendChild(title);
-        alarm.appendChild(message);
-        alarm.appendChild(dismissBtn);
-        overlay.appendChild(alarm);
-        document.body.appendChild(overlay);
-
-        // Auto-focus the dismiss button
-        dismissBtn.focus();
+        notification.appendChild(header);
+        notification.appendChild(message);
+        notification.appendChild(dismissBtn);
+        document.body.appendChild(notification);
 
         // Allow ESC key to dismiss
         const escHandler = (e) => {
@@ -475,16 +300,15 @@ class TimeAuditCalendar {
         this.tooltip.className = 'entry-tooltip';
         this.tooltip.style.cssText = `
             position: absolute;
-            background: linear-gradient(135deg, #1a0033, #330066, #0066cc);
-            border: 2px solid #00ffff;
+            background: white;
+            border: 1px solid #e5e7eb;
             border-radius: 8px;
             padding: 12px 16px;
-            font-family: 'Rajdhani', monospace;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             font-size: 14px;
-            font-weight: 500;
-            color: #ffffff;
-            text-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
-            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+            font-weight: 400;
+            color: #1f2937;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
             z-index: 999;
             pointer-events: none;
             opacity: 0;
@@ -651,10 +475,10 @@ Energy: ${entry.energy_impact.charAt(0).toUpperCase() + entry.energy_impact.slic
         setTimeout(() => {
             const calendarBody = document.querySelector('.calendar-body');
             if (calendarBody) {
-                // 7:00 AM is the 14th time slot (0:00, 0:30, 1:00, 1:30, ... 7:00)
-                // Each time slot is 40px tall in desktop, 25px in mobile landscape
-                const isMobile = window.innerWidth <= 926;
-                const slotHeight = isMobile ? 25 : 40;
+                            // 7:00 AM is the 14th time slot (0:00, 0:30, 1:00, 1:30, ... 7:00)
+            // Each time slot is 70px tall in desktop, 40px in mobile landscape
+            const isMobile = window.innerWidth <= 926;
+            const slotHeight = isMobile ? 40 : 70;
                 const morningSlot = 14; // 7:00 AM
                 const scrollPosition = morningSlot * slotHeight;
                 
@@ -675,55 +499,24 @@ Energy: ${entry.energy_impact.charAt(0).toUpperCase() + entry.energy_impact.slic
             existingLine.remove();
         }
 
-        // Create the glowing red laser line
+        // Create the current time line
         this.currentTimeLine = document.createElement('div');
         this.currentTimeLine.id = 'current-time-line';
         this.currentTimeLine.style.cssText = `
             position: absolute;
-            left: 0;
+            left: 80px;
             right: 0;
             height: 2px;
-            background: linear-gradient(90deg, 
-                transparent 0%, 
-                #ff0000 10%, 
-                #ff3333 50%, 
-                #ff0000 90%, 
-                transparent 100%
-            );
-            box-shadow: 
-                0 0 10px #ff0000,
-                0 0 20px #ff0000,
-                0 0 30px #ff0000;
+            border-top: 2px dotted #5a7c5a;
             z-index: 1000;
             pointer-events: none;
-            opacity: 0.9;
-            animation: currentTimePulse 2s ease-in-out infinite alternate;
+            opacity: 0.7;
         `;
 
-        // Add pulsing animation
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes currentTimePulse {
-                0% { 
-                    box-shadow: 
-                        0 0 10px #ff0000,
-                        0 0 20px #ff0000,
-                        0 0 30px #ff0000;
-                    opacity: 0.9;
-                }
-                100% { 
-                    box-shadow: 
-                        0 0 15px #ff0000,
-                        0 0 30px #ff0000,
-                        0 0 45px #ff0000,
-                        0 0 60px rgba(255, 0, 0, 0.5);
-                    opacity: 1;
-                }
-            }
-        `;
-        if (!document.getElementById('current-time-style')) {
-            style.id = 'current-time-style';
-            document.head.appendChild(style);
+        // Remove any existing time line styles
+        const existingStyle = document.getElementById('current-time-style');
+        if (existingStyle) {
+            existingStyle.remove();
         }
 
         // Add to calendar grid (which has the time slots)
@@ -751,7 +544,7 @@ Energy: ${entry.energy_impact.charAt(0).toUpperCase() + entry.energy_impact.slic
         
         // Calculate pixel position
         const isMobile = window.innerWidth <= 926;
-        const slotHeight = isMobile ? 25 : 40;
+        const slotHeight = isMobile ? 40 : 70;
         const progressInSlot = minutesIntoSlot / 30; // 0 to 1
         const pixelPosition = (slotIndex * slotHeight) + (progressInSlot * slotHeight);
 
@@ -853,12 +646,10 @@ Energy: ${entry.energy_impact.charAt(0).toUpperCase() + entry.energy_impact.slic
                 timeSlot.classList.add('has-entry');
                 timeSlot.appendChild(this.createEntryElement(entry));
                 timeSlot.addEventListener('click', () => {
-                    this.playUISound('select');
                     this.editEntry(entry);
                 });
             } else {
                 timeSlot.addEventListener('click', () => {
-                    this.playUISound('click');
                     this.addEntry(dateStr, timeStr);
                 });
             }
@@ -888,7 +679,12 @@ Energy: ${entry.energy_impact.charAt(0).toUpperCase() + entry.energy_impact.slic
         typeEl.className = `entry-type ${entry.type}`;
         typeEl.textContent = entry.type.charAt(0).toUpperCase();
         
+        const energyEl = document.createElement('span');
+        energyEl.className = `entry-energy ${entry.energy_impact}`;
+        energyEl.textContent = this.getEnergyIcon(entry.energy_impact);
+        
         metaEl.appendChild(typeEl);
+        metaEl.appendChild(energyEl);
         
         entryEl.appendChild(activityEl);
         entryEl.appendChild(metaEl);
@@ -908,7 +704,6 @@ Energy: ${entry.energy_impact.charAt(0).toUpperCase() + entry.energy_impact.slic
             this.draggedEntry = entry;
             this.draggedElement = entryEl;
             entryEl.style.opacity = '0.5';
-            this.playUISound('select');
             
             // Hide tooltip and clear any pending timeouts
             this.hideTooltip();
@@ -962,7 +757,6 @@ Energy: ${entry.energy_impact.charAt(0).toUpperCase() + entry.energy_impact.slic
                 
                 // Don't drop on occupied slot
                 if (timeSlot.classList.contains('has-entry')) {
-                    this.playUISound('button'); // Error sound
                     return;
                 }
                 
@@ -981,11 +775,9 @@ Energy: ${entry.energy_impact.charAt(0).toUpperCase() + entry.energy_impact.slic
             };
             
             await api.updateEntry(entry.id, updatedEntry);
-            this.playUISound('close'); // Success sound
             this.loadCalendar(); // Refresh to show new position
         } catch (error) {
             console.error('Failed to move entry:', error);
-            this.playUISound('button'); // Error sound
         }
     }
 
@@ -1025,7 +817,6 @@ Energy: ${entry.energy_impact.charAt(0).toUpperCase() + entry.energy_impact.slic
 
     // Open modal
     openModal(title) {
-        this.playUISound('open');
         document.getElementById('modalTitle').textContent = title;
         document.getElementById('entryModal').style.display = 'block';
         
@@ -1038,9 +829,6 @@ Energy: ${entry.energy_impact.charAt(0).toUpperCase() + entry.energy_impact.slic
             this.hoverTimeout = null;
         }
         
-        // Prevent body scroll on mobile
-        document.body.classList.add('modal-open');
-        
         document.getElementById('entryActivity').focus();
     }
 
@@ -1048,9 +836,6 @@ Energy: ${entry.energy_impact.charAt(0).toUpperCase() + entry.energy_impact.slic
     closeModal() {
         document.getElementById('entryModal').style.display = 'none';
         this.editingEntry = null;
-        
-        // Restore body scroll
-        document.body.classList.remove('modal-open');
     }
 
     // Save entry (create or update)
@@ -1100,19 +885,15 @@ Energy: ${entry.energy_impact.charAt(0).toUpperCase() + entry.energy_impact.slic
         
         try {
             await api.deleteEntry(this.editingEntry.id);
-            this.playUISound('close');
             this.closeModal();
             this.loadCalendar();
         } catch (error) {
             console.error('Failed to delete entry:', error);
-            this.playUISound('button'); // Error sound
         }
     }
 
     // Day Detail View Methods
     showDayDetail(date) {
-        this.playUISound('button');
-        
         // Handle both Date objects and date strings
         if (date instanceof Date) {
             this.selectedDate = date;
@@ -1148,8 +929,6 @@ Energy: ${entry.energy_impact.charAt(0).toUpperCase() + entry.energy_impact.slic
     }
 
     hideDayDetail() {
-        this.playUISound('button');
-        
         // Switch back to calendar view
         document.getElementById('dayDetailView').style.display = 'none';
         document.getElementById('calendarView').style.display = 'block';
@@ -1175,7 +954,6 @@ Energy: ${entry.energy_impact.charAt(0).toUpperCase() + entry.energy_impact.slic
         });
 
         document.getElementById('prevDay').addEventListener('click', () => {
-            this.playUISound('nav');
             this.selectedDate.setDate(this.selectedDate.getDate() - 1);
             this.updateDayTitle();
             this.loadDayDetail();
@@ -1192,7 +970,6 @@ Energy: ${entry.energy_impact.charAt(0).toUpperCase() + entry.energy_impact.slic
         });
 
         document.getElementById('nextDay').addEventListener('click', () => {
-            this.playUISound('nav');
             this.selectedDate.setDate(this.selectedDate.getDate() + 1);
             this.updateDayTitle();
             this.loadDayDetail();
@@ -1210,19 +987,16 @@ Energy: ${entry.energy_impact.charAt(0).toUpperCase() + entry.energy_impact.slic
 
         // Tab switching
         document.getElementById('energyTab').addEventListener('click', () => {
-            this.playUISound('button');
             this.switchTab('energy');
         });
 
         document.getElementById('timelineTab').addEventListener('click', () => {
-            this.playUISound('button');
             this.switchTab('timeline');
         });
 
         // Summary tab switching
         if (document.getElementById('summaryTab')) {
             document.getElementById('summaryTab').addEventListener('click', () => {
-                this.playUISound('button');
                 this.switchTab('summary');
             });
         }
@@ -1348,8 +1122,8 @@ Energy: ${entry.energy_impact.charAt(0).toUpperCase() + entry.energy_impact.slic
         
         if (entries.length === 0) {
             // Draw empty state
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-            ctx.font = '16px Rajdhani';
+            ctx.fillStyle = '#6b7280';
+            ctx.font = '16px Inter';
             ctx.textAlign = 'center';
             ctx.fillText('No data for this day', rect.width / 2, rect.height / 2);
             return;
@@ -1402,7 +1176,7 @@ Energy: ${entry.energy_impact.charAt(0).toUpperCase() + entry.energy_impact.slic
         };
         
         // Draw grid lines
-        ctx.strokeStyle = 'rgba(0, 255, 255, 0.2)';
+        ctx.strokeStyle = '#e5e7eb';
         ctx.lineWidth = 1;
         
         // Vertical grid lines (every 4 hours)
@@ -1426,7 +1200,7 @@ Energy: ${entry.energy_impact.charAt(0).toUpperCase() + entry.energy_impact.slic
         
         // Draw zero line
         const zeroY = padding + graphHeight - ((0 - minEnergy) / energyRange) * graphHeight;
-        ctx.strokeStyle = 'rgba(255, 255, 0, 0.5)';
+        ctx.strokeStyle = '#6b7280';
         ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.moveTo(padding, zeroY);
@@ -1434,7 +1208,7 @@ Energy: ${entry.energy_impact.charAt(0).toUpperCase() + entry.energy_impact.slic
         ctx.stroke();
         
         // Draw energy line
-        ctx.strokeStyle = '#00ffff';
+        ctx.strokeStyle = '#2563eb';
         ctx.lineWidth = 3;
         ctx.beginPath();
         
@@ -1459,28 +1233,20 @@ Energy: ${entry.energy_impact.charAt(0).toUpperCase() + entry.energy_impact.slic
             
             // Color based on energy type
             const colors = {
-                'energised': '#00ff00',
-                'neutral': '#ffff00',
-                'drained': '#ff4444'
+                'energised': '#10b981',
+                'neutral': '#6b7280',
+                'drained': '#ef4444'
             };
             
-            ctx.fillStyle = colors[point.type] || '#ffffff';
+            ctx.fillStyle = colors[point.type] || '#6b7280';
             ctx.beginPath();
-            ctx.arc(x, y, 3, 0, 2 * Math.PI);
+            ctx.arc(x, y, 4, 0, 2 * Math.PI);
             ctx.fill();
-            
-            // Add glow effect
-            ctx.shadowColor = colors[point.type] || '#ffffff';
-            ctx.shadowBlur = 6;
-            ctx.beginPath();
-            ctx.arc(x, y, 2, 0, 2 * Math.PI);
-            ctx.fill();
-            ctx.shadowBlur = 0;
         });
         
         // Draw axes labels
-        ctx.fillStyle = '#00ffff';
-        ctx.font = 'bold 13px Orbitron';
+        ctx.fillStyle = '#2563eb';
+        ctx.font = '12px Inter';
         ctx.textAlign = 'center';
         
         // Time labels
@@ -1489,12 +1255,11 @@ Energy: ${entry.energy_impact.charAt(0).toUpperCase() + entry.energy_impact.slic
             const timeStr = hour === 0 ? '12 AM' : 
                           hour === 12 ? '12 PM' : 
                           hour < 12 ? `${hour} AM` : `${hour - 12} PM`;
-            ctx.fillText(timeStr, x, rect.height - 25);
+            ctx.fillText(timeStr, x, rect.height - 10);
         }
         
         // Energy level labels
         ctx.textAlign = 'right';
-        ctx.font = 'bold 12px Orbitron';
         for (let i = 0; i <= gridLines; i++) {
             const energy = minEnergy + (i / gridLines) * energyRange;
             const y = padding + graphHeight - (i / gridLines) * graphHeight;
@@ -1502,17 +1267,16 @@ Energy: ${entry.energy_impact.charAt(0).toUpperCase() + entry.energy_impact.slic
         }
         
         // Axis titles
-        ctx.fillStyle = '#ff00ff';
-        ctx.font = 'bold 14px Orbitron';
+        ctx.fillStyle = '#1f2937';
+        ctx.font = '14px Inter';
         ctx.textAlign = 'center';
-        ctx.fillText('Time', rect.width / 2, rect.height - 5);
+        ctx.fillText('Time', rect.width / 2, rect.height - 25);
         
         ctx.save();
-        ctx.translate(12, rect.height / 2);
+        ctx.translate(15, rect.height / 2);
         ctx.rotate(-Math.PI / 2);
-        ctx.fillText('Cumulative Energy Level', 0, 0);
+        ctx.fillText('Energy Level', 0, 0);
         ctx.restore();
-        
     }
 
     updateDayTimeline(entries) {
