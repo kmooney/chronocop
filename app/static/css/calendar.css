@@ -3,6 +3,7 @@
 :root {
     --primary-color: #8b4513;
     --primary-hover: #723a0f;
+    --primary-dark: #5d2e0a;
     --secondary-color: #6b5b73;
     --success-color: #5a7c5a;
     --warning-color: #b8860b;
@@ -20,13 +21,27 @@
     --text-muted: #8b7d6b;
     --border-color: #e6ddd4;
     --border-light: #f0e9e2;
+    --border-dark: #c8b8a5;
     --bg-primary: #faf8f5;
     --bg-secondary: #f5f2ed;
     --bg-tertiary: #ede8e1;
+    
+    /* Enhanced skeumorphic shadows */
+    --shadow-inset: inset 0 1px 3px rgba(44, 36, 22, 0.12), inset 0 1px 2px rgba(44, 36, 22, 0.24);
+    --shadow-inset-deep: inset 0 2px 6px rgba(44, 36, 22, 0.15), inset 0 1px 3px rgba(44, 36, 22, 0.3);
+    --shadow-raised: 0 1px 0 rgba(255, 255, 255, 0.4), 0 2px 4px rgba(44, 36, 22, 0.08), 0 4px 8px rgba(44, 36, 22, 0.06);
+    --shadow-floating: 0 2px 4px rgba(44, 36, 22, 0.08), 0 8px 16px rgba(44, 36, 22, 0.12), 0 16px 32px rgba(44, 36, 22, 0.08);
+    --shadow-deep: 0 4px 8px rgba(44, 36, 22, 0.12), 0 12px 24px rgba(44, 36, 22, 0.15), 0 24px 48px rgba(44, 36, 22, 0.1);
     --shadow-sm: 0 1px 2px 0 rgba(44, 36, 22, 0.06);
     --shadow: 0 1px 3px 0 rgba(44, 36, 22, 0.12), 0 1px 2px 0 rgba(44, 36, 22, 0.08);
     --shadow-md: 0 4px 6px -1px rgba(44, 36, 22, 0.12), 0 2px 4px -1px rgba(44, 36, 22, 0.08);
     --shadow-lg: 0 10px 15px -3px rgba(44, 36, 22, 0.12), 0 4px 6px -2px rgba(44, 36, 22, 0.06);
+
+    /* Gradient presets for skeumorphic effects */
+    --gradient-raised: linear-gradient(145deg, #ffffff 0%, #f8f6f3 50%, #f0ede6 100%);
+    --gradient-inset: linear-gradient(145deg, #e8e0d3 0%, #f0ede6 50%, #faf8f5 100%);
+    --gradient-button: linear-gradient(145deg, #fdfcfa 0%, #f8f5f0 50%, #f2ede6 100%);
+    --gradient-button-hover: linear-gradient(145deg, #ffffff 0%, #faf8f5 50%, #f5f2ed 100%);
 
     --background-primary: #faf8f5;
     --background-secondary: #f5f2ed;
@@ -59,7 +74,26 @@
 
 body {
     font-family: var(--font-main);
-    background: linear-gradient(135deg, #faf8f5 0%, #f0ede6 100%);
+    background: 
+        /* Organic paper fiber dots - no parallel lines */
+        radial-gradient(circle at 23% 17%, rgba(139, 69, 19, 0.25) 1px, transparent 1px),
+        radial-gradient(circle at 79% 23%, rgba(107, 91, 115, 0.22) 1px, transparent 1px),
+        radial-gradient(circle at 37% 43%, rgba(160, 82, 45, 0.18) 0.8px, transparent 0.8px),
+        radial-gradient(circle at 63% 77%, rgba(139, 69, 19, 0.23) 1.2px, transparent 1.2px),
+        radial-gradient(circle at 13% 59%, rgba(107, 91, 115, 0.21) 0.9px, transparent 0.9px),
+        radial-gradient(circle at 87% 41%, rgba(160, 82, 45, 0.24) 1.1px, transparent 1.1px),
+        radial-gradient(circle at 71% 7%, rgba(139, 69, 19, 0.19) 0.7px, transparent 0.7px),
+        radial-gradient(circle at 29% 89%, rgba(107, 91, 115, 0.26) 1.3px, transparent 1.3px),
+        radial-gradient(circle at 51% 31%, rgba(160, 82, 45, 0.16) 0.6px, transparent 0.6px),
+        radial-gradient(circle at 91% 73%, rgba(139, 69, 19, 0.20) 1.4px, transparent 1.4px),
+        radial-gradient(circle at 8% 84%, rgba(107, 91, 115, 0.18) 0.9px, transparent 0.9px),
+        radial-gradient(circle at 76% 52%, rgba(160, 82, 45, 0.22) 1.1px, transparent 1.1px),
+        radial-gradient(circle at 44% 68%, rgba(139, 69, 19, 0.17) 0.8px, transparent 0.8px),
+        radial-gradient(circle at 92% 14%, rgba(107, 91, 115, 0.24) 1.3px, transparent 1.3px),
+        radial-gradient(circle at 18% 26%, rgba(160, 82, 45, 0.19) 0.7px, transparent 0.7px),
+        /* Darker base gradient */
+        linear-gradient(135deg, #ebe6dd 0%, #ddd4c7 100%);
+    background-size: 47px 53px, 61px 67px, 37px 43px, 73px 71px, 41px 47px, 59px 53px, 31px 37px, 67px 61px, 43px 41px, 71px 73px, 39px 49px, 83px 79px, 29px 41px, 77px 59px, 51px 63px, 100% 100%;
     background-attachment: fixed;
     color: var(--text-primary);
     line-height: 1.6;
@@ -94,23 +128,29 @@ header {
 }
 
 .settings-btn {
-    background: var(--bg-primary);
+    background: var(--gradient-button);
     border: 1px solid var(--border-color);
+    border-top: 1px solid rgba(255, 255, 255, 0.8);
+    border-left: 1px solid rgba(255, 255, 255, 0.6);
+    border-bottom: 1px solid var(--border-dark);
+    border-right: 1px solid var(--border-dark);
     color: var(--text-secondary);
     padding: 10px 12px;
     border-radius: var(--radius);
     cursor: pointer;
     font-size: 1.1rem;
-    transition: all 0.2s ease;
-    box-shadow: var(--shadow-sm);
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: var(--shadow-raised);
 }
 
 .settings-btn:hover {
-    background: var(--bg-secondary);
+    background: var(--gradient-button-hover);
     color: var(--text-primary);
-    border-color: var(--primary-color);
-    transform: translateY(-1px);
-    box-shadow: var(--shadow);
+    border-top: 1px solid rgba(255, 255, 255, 0.9);
+    border-left: 1px solid rgba(255, 255, 255, 0.7);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-floating);
 }
 
 header h1 {
@@ -120,6 +160,8 @@ header h1 {
     margin-bottom: 20px;
     color: var(--primary-color);
     letter-spacing: -0.02em;
+    text-shadow: 0 2px 4px rgba(139, 69, 19, 0.2), 0 1px 0 rgba(255, 255, 255, 0.6);
+    filter: drop-shadow(0 4px 8px rgba(139, 69, 19, 0.1));
 }
 
 .week-navigation {
@@ -132,29 +174,38 @@ header h1 {
 .nav-btn {
     padding: 12px 24px;
     border: 1px solid var(--border-color);
-    background: var(--bg-primary);
+    border-top: 1px solid rgba(255, 255, 255, 0.8);
+    border-left: 1px solid rgba(255, 255, 255, 0.6);
+    border-bottom: 1px solid var(--border-dark);
+    border-right: 1px solid var(--border-dark);
+    background: var(--gradient-button);
     color: var(--text-primary);
     border-radius: var(--radius);
     cursor: pointer;
     font-family: var(--font-main);
     font-weight: 500;
     font-size: 0.9rem;
-    transition: all 0.2s ease;
-    box-shadow: var(--shadow-sm);
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: var(--shadow-raised);
 }
 
 .nav-btn:hover {
-    background: var(--bg-secondary);
-    border-color: var(--primary-color);
-    transform: translateY(-1px);
-    box-shadow: var(--shadow);
+    background: var(--gradient-button-hover);
+    border-top: 1px solid rgba(255, 255, 255, 0.9);
+    border-left: 1px solid rgba(255, 255, 255, 0.7);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-floating);
 }
 
 .nav-btn.current {
-    background: var(--primary-color);
+    background: linear-gradient(145deg, var(--primary-color) 0%, var(--primary-dark) 100%);
     color: var(--bg-primary);
-    border-color: var(--primary-color);
-    box-shadow: var(--shadow-md);
+    border: 1px solid var(--primary-dark);
+    border-top: 1px solid var(--primary-color);
+    border-left: 1px solid var(--primary-color);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    box-shadow: var(--shadow-inset-deep), var(--shadow-floating);
 }
 
 .week-display {
@@ -167,10 +218,22 @@ header h1 {
 
 /* Calendar */
 .calendar-container {
-    background: var(--bg-primary);
-    border: 1px solid var(--border-color);
+    background: 
+        /* Subtle paper texture for calendar */
+        radial-gradient(circle at 25% 25%, rgba(139, 69, 19, 0.08) 0.5px, transparent 0.5px),
+        radial-gradient(circle at 75% 75%, rgba(107, 91, 115, 0.06) 0.6px, transparent 0.6px),
+        radial-gradient(circle at 50% 10%, rgba(160, 82, 45, 0.05) 0.4px, transparent 0.4px),
+        radial-gradient(circle at 10% 90%, rgba(139, 69, 19, 0.07) 0.7px, transparent 0.7px),
+        /* Beautiful gradient base */
+        var(--gradient-raised);
+    background-size: 30px 30px, 40px 40px, 25px 25px, 35px 35px, 100% 100%;
+    border: 2px solid var(--border-color);
+    border-top: 2px solid rgba(255, 255, 255, 0.8);
+    border-left: 2px solid rgba(255, 255, 255, 0.6);
+    border-bottom: 2px solid var(--border-dark);
+    border-right: 2px solid var(--border-dark);
     border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-lg);
+    box-shadow: var(--shadow-deep);
     overflow: hidden;
     position: relative;
 }
@@ -204,7 +267,7 @@ header h1 {
 }
 
 .calendar-body {
-    height: calc(100vh - 280px);
+    height: calc(100vh - 340px);
     max-height: calc(48 * 70px);
     overflow-y: auto;
     overflow-x: auto;
@@ -223,18 +286,21 @@ header h1 {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--bg-tertiary);
+    background: var(--gradient-button);
     border-right: 1px solid var(--border-color);
     border-bottom: 1px solid var(--border-light);
+    border-left: 1px solid rgba(255, 255, 255, 0.3);
     font-family: var(--font-mono);
     font-size: 0.85rem;
     font-weight: 500;
     color: var(--text-secondary);
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
     position: sticky;
     left: 0;
     z-index: 50;
     box-sizing: border-box;
     height: 70px;
+    box-shadow: var(--shadow-raised);
 }
 
 .day-header {
@@ -242,21 +308,25 @@ header h1 {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background: var(--bg-secondary);
+    background: var(--gradient-button);
     color: var(--text-primary);
     font-family: var(--font-serif);
     font-weight: 500;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
     border-right: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-dark);
     height: 60px;
     box-sizing: border-box;
     position: relative;
     cursor: pointer;
-    transition: all 0.2s ease;
+    box-shadow: var(--shadow-raised);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .day-header:hover {
-    background: var(--bg-tertiary);
+    background: var(--gradient-button-hover);
     transform: translateY(-1px);
+    box-shadow: var(--shadow-floating);
 }
 
 .day-header:last-child {
@@ -276,15 +346,15 @@ header h1 {
 }
 
 .time-slot {
-    border-right: 1px solid var(--border-light);
-    border-bottom: 1px solid var(--border-light);
+    border-right: 1px solid rgba(230, 221, 212, 0.3);
+    border-bottom: 1px solid rgba(230, 221, 212, 0.3);
     cursor: pointer;
     position: relative;
     height: 70px;
     box-sizing: border-box;
     overflow: hidden;
-    background: var(--bg-primary);
-    transition: all 0.2s ease;
+    background: rgba(250, 248, 245, 0.4);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .time-slot:nth-child(8n) {
@@ -292,7 +362,9 @@ header h1 {
 }
 
 .time-slot:hover {
-    background: var(--bg-secondary);
+    background: rgba(250, 248, 245, 0.7);
+    border-right: 1px solid rgba(230, 221, 212, 0.5);
+    border-bottom: 1px solid rgba(230, 221, 212, 0.5);
 }
 
 .time-slot.has-entry {
@@ -331,11 +403,14 @@ header h1 {
     font-weight: 500;
     line-height: 1.3;
     border-left: 4px solid;
+    border-top: 1px solid rgba(255, 255, 255, 0.6);
     overflow: hidden;
     position: relative;
     color: var(--text-primary);
-    background: rgba(250, 248, 245, 0.9);
+    background: var(--gradient-raised);
     border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    box-shadow: var(--shadow-raised);
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
 }
 
 .entry.planned {
@@ -445,16 +520,27 @@ header h1 {
 }
 
 .modal-content {
-    background: var(--bg-primary);
+    background: 
+        /* Subtle paper texture for modals */
+        radial-gradient(circle at 30% 30%, rgba(139, 69, 19, 0.06) 0.6px, transparent 0.6px),
+        radial-gradient(circle at 70% 70%, rgba(107, 91, 115, 0.05) 0.5px, transparent 0.5px),
+        radial-gradient(circle at 15% 85%, rgba(160, 82, 45, 0.04) 0.4px, transparent 0.4px),
+        /* Beautiful gradient base */
+        var(--gradient-raised);
+    background-size: 28px 28px, 32px 32px, 24px 24px, 100% 100%;
     margin: 0 auto;
     padding: 0;
-    border: 1px solid var(--border-color);
+    border: 2px solid var(--border-color);
+    border-top: 2px solid rgba(255, 255, 255, 0.9);
+    border-left: 2px solid rgba(255, 255, 255, 0.7);
+    border-bottom: 2px solid var(--border-dark);
+    border-right: 2px solid var(--border-dark);
     border-radius: var(--radius-lg);
     width: 90%;
     max-width: 500px;
     min-height: fit-content;
     max-height: calc(100vh - 40px);
-    box-shadow: var(--shadow-lg);
+    box-shadow: var(--shadow-deep);
     position: relative;
     overflow: hidden;
     display: flex;
@@ -521,14 +607,17 @@ form {
 .form-group textarea {
     width: 100%;
     padding: 12px 16px;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-dark);
+    border-top: 1px solid var(--border-color);
+    border-left: 1px solid var(--border-color);
     border-radius: var(--radius);
     font-family: var(--font-main);
     font-size: 0.95rem;
     font-weight: 400;
     color: var(--text-primary);
-    background: var(--bg-primary);
-    transition: all 0.2s ease;
+    background: var(--gradient-inset);
+    box-shadow: var(--shadow-inset);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     -webkit-user-select: text;
     -moz-user-select: text;
     -ms-user-select: text;
@@ -539,8 +628,11 @@ form {
 .form-group select:focus,
 .form-group textarea:focus {
     outline: none;
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.1);
+    border: 1px solid var(--primary-color);
+    border-top: 1px solid var(--primary-hover);
+    border-left: 1px solid var(--primary-hover);
+    background: var(--gradient-raised);
+    box-shadow: var(--shadow-raised), 0 0 0 3px rgba(139, 69, 19, 0.1);
 }
 
 .form-group textarea {
@@ -605,47 +697,66 @@ form {
     font-size: 0.9rem;
     font-weight: 500;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     font-family: var(--font-main);
+    position: relative;
+    overflow: hidden;
 }
 
 .btn-primary {
-    background: var(--primary-color);
+    background: linear-gradient(145deg, var(--primary-color) 0%, var(--primary-dark) 100%);
     color: var(--bg-primary);
-    border: 1px solid var(--primary-color);
+    border: 1px solid var(--primary-dark);
+    border-top: 1px solid var(--primary-color);
+    border-left: 1px solid var(--primary-color);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    box-shadow: var(--shadow-raised);
 }
 
 .btn-primary:hover {
-    background: var(--primary-hover);
-    border-color: var(--primary-hover);
-    transform: translateY(-1px);
-    box-shadow: var(--shadow);
+    background: linear-gradient(145deg, var(--primary-hover) 0%, var(--primary-dark) 100%);
+    border-top: 1px solid var(--primary-hover);
+    border-left: 1px solid var(--primary-hover);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-floating);
 }
 
 .btn-secondary {
-    background: var(--bg-primary);
+    background: var(--gradient-button);
     color: var(--text-primary);
     border: 1px solid var(--border-color);
+    border-top: 1px solid rgba(255, 255, 255, 0.8);
+    border-left: 1px solid rgba(255, 255, 255, 0.6);
+    border-bottom: 1px solid var(--border-dark);
+    border-right: 1px solid var(--border-dark);
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+    box-shadow: var(--shadow-raised);
 }
 
 .btn-secondary:hover {
-    background: var(--bg-secondary);
-    border-color: var(--text-secondary);
-    transform: translateY(-1px);
-    box-shadow: var(--shadow);
+    background: var(--gradient-button-hover);
+    border-top: 1px solid rgba(255, 255, 255, 0.9);
+    border-left: 1px solid rgba(255, 255, 255, 0.7);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-floating);
 }
 
 .btn-danger {
-    background: var(--danger-color);
+    background: linear-gradient(145deg, var(--danger-color) 0%, #8b3a1d 100%);
     color: var(--bg-primary);
-    border: 1px solid var(--danger-color);
+    border: 1px solid #8b3a1d;
+    border-top: 1px solid var(--danger-color);
+    border-left: 1px solid var(--danger-color);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    box-shadow: var(--shadow-raised);
 }
 
 .btn-danger:hover {
-    background: rgba(160, 82, 45, 0.9);
-    border-color: rgba(160, 82, 45, 0.9);
-    transform: translateY(-1px);
-    box-shadow: var(--shadow);
+    background: linear-gradient(145deg, rgba(160, 82, 45, 0.9) 0%, #8b3a1d 100%);
+    border-top: 1px solid rgba(160, 82, 45, 0.9);
+    border-left: 1px solid rgba(160, 82, 45, 0.9);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-floating);
 }
 
 /* Loading */
@@ -785,12 +896,12 @@ form {
     
     .calendar-container {
         border-radius: var(--radius);
-        height: calc(100vh - 70px);
+        height: calc(100vh - 130px);
         overflow: hidden;
     }
     
     .calendar-body {
-        height: calc(100vh - 70px - 20px);
+        height: calc(100vh - 70px - 80px);
         max-height: calc(48 * 40px);
         overflow-y: auto;
         overflow-x: hidden;
@@ -885,12 +996,23 @@ form {
 }
 
 .day-summary {
-    background: var(--bg-primary);
-    border: 1px solid var(--border-color);
+    background: 
+        /* Subtle paper texture for summary */
+        radial-gradient(circle at 40% 20%, rgba(139, 69, 19, 0.04) 0.5px, transparent 0.5px),
+        radial-gradient(circle at 80% 60%, rgba(107, 91, 115, 0.03) 0.4px, transparent 0.4px),
+        radial-gradient(circle at 20% 80%, rgba(160, 82, 45, 0.03) 0.6px, transparent 0.6px),
+        /* Beautiful gradient base */
+        var(--gradient-raised);
+    background-size: 26px 26px, 30px 30px, 22px 22px, 100% 100%;
+    border: 2px solid var(--border-color);
+    border-top: 2px solid rgba(255, 255, 255, 0.8);
+    border-left: 2px solid rgba(255, 255, 255, 0.6);
+    border-bottom: 2px solid var(--border-dark);
+    border-right: 2px solid var(--border-dark);
     border-radius: var(--radius-lg);
     padding: 24px;
     margin-bottom: 24px;
-    box-shadow: var(--shadow);
+    box-shadow: var(--shadow-floating);
 }
 
 .summary-stats {
@@ -989,10 +1111,22 @@ form {
 }
 
 .day-tabs {
-    background: var(--bg-primary);
-    border: 1px solid var(--border-color);
+    background: 
+        /* Subtle paper texture for tabs */
+        radial-gradient(circle at 35% 35%, rgba(139, 69, 19, 0.04) 0.5px, transparent 0.5px),
+        radial-gradient(circle at 65% 15%, rgba(107, 91, 115, 0.03) 0.6px, transparent 0.6px),
+        radial-gradient(circle at 15% 75%, rgba(160, 82, 45, 0.03) 0.4px, transparent 0.4px),
+        radial-gradient(circle at 85% 85%, rgba(139, 69, 19, 0.02) 0.7px, transparent 0.7px),
+        /* Beautiful gradient base */
+        var(--gradient-raised);
+    background-size: 29px 29px, 33px 33px, 25px 25px, 37px 37px, 100% 100%;
+    border: 2px solid var(--border-color);
+    border-top: 2px solid rgba(255, 255, 255, 0.8);
+    border-left: 2px solid rgba(255, 255, 255, 0.6);
+    border-bottom: 2px solid var(--border-dark);
+    border-right: 2px solid var(--border-dark);
     border-radius: var(--radius-lg);
-    box-shadow: var(--shadow);
+    box-shadow: var(--shadow-floating);
     overflow: hidden;
 }
 
